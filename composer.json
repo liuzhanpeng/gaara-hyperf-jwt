@@ -1,0 +1,37 @@
+{
+    "name": "lzpeng/gaara-hyperf-jwt",
+    "description": "gaara-hyperf jwt authentication extension.",
+    "type": "library",
+    "license": "MIT",
+    "autoload": {
+        "psr-4": {
+            "GaaraHyperf\\JWT\\": "src/"
+        }
+    },
+    "authors": [
+        {
+            "name": "liuzhanpeng",
+            "email": "liuzhanpeng@gmail.com"
+        }
+    ],
+    "require": {
+        "php": ">=8.1",
+        "lzpeng/gaara-hyperf": "dev-develop",
+        "lcobucci/jwt": "^5.6"
+    },
+    "require-dev": {
+        "pestphp/pest": "^2.36",
+        "mockery/mockery": "^1.6"
+    },
+    "repositories": [
+        {
+            "type": "path",
+            "url": "/Users/peng/Works/gaara-hyperf"
+        }
+    ],
+    "config": {
+        "allow-plugins": {
+            "pestphp/pest-plugin": true
+        }
+    }
+}
