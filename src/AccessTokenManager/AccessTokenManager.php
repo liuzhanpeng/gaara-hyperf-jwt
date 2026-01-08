@@ -73,12 +73,11 @@ class AccessTokenManager implements AccessTokenManagerInterface
      */
     public function parse(string $accessToken): JWTUser
     {
-        $signer = $this->createSigner($this->options['algo']);
-        $key = $this->createVerificationKey($this->options['algo']);
-
-        $parser = new Parser(new JoseEncoder());
-
         try {
+            $signer = $this->createSigner($this->options['algo']);
+            $key = $this->createVerificationKey($this->options['algo']);
+
+            $parser = new Parser(new JoseEncoder());
             $token = $parser->parse($accessToken);
         } catch (\Throwable $e) {
             throw new JWTException('Failed to parse access token: ' . $e->getMessage());
