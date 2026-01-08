@@ -47,10 +47,10 @@ return [
                 'secret_key' => 'your-secret', // 对称算法密钥 或 非对称算法私钥
                 // 'public_key' => '', // 非对称算法公钥
                 // 'pass_phrase' => '', // 私钥密码（如果有的话）
-                'ttl' => 600, // Access Token 有效期，单位：秒
-                // 'leeway' => 0, // 允许的时间偏差，单位：秒
-                'iss' => 'gaara',
-                'aud' => 'api',
+                'expires_in' => 600, // Access Token 有效期，单位：秒
+                // 'leeway' => 5, // 允许的时间偏差，单位：秒
+                // 'iss' => 'xxx',
+                // 'aud' => 'xxx-app',
             ],
         ],
     ]

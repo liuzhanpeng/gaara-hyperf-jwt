@@ -27,7 +27,7 @@ class AccessTokenManagerResolver implements AccessTokenManagerResolverInterface
      */
     public function resolve(string $name = 'default'): AccessTokenManagerInterface
     {
-        if (!isset($this->jwtokenManagerMap[$name])) {
+        if (!isset($this->accessTokenManagerMap[$name])) {
             throw new \InvalidArgumentException("JWT Token Manager does not exist: $name");
         }
 

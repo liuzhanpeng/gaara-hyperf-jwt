@@ -53,7 +53,7 @@ class AccessTokenManager implements AccessTokenManagerInterface
         $now = new DateTimeImmutable();
         $token = $builder
             ->issuedAt($now)
-            ->expiresAt($now->modify('+' . $this->options['ttl'] . ' seconds'))
+            ->expiresAt($now->modify('+' . $this->options['expires_in'] . ' seconds'))
             ->canOnlyBeUsedAfter($now)
             ->issuedBy($this->options['iss'])
             ->permittedFor($this->options['aud'])
@@ -61,7 +61,11 @@ class AccessTokenManager implements AccessTokenManagerInterface
             ->identifiedBy(bin2hex(random_bytes(16)))
             ->getToken($signer, $key);
 
-        return new AccessToken($token->toString(), $token->claims()->get('exp'));
+        /**
+         * @var \DateTimeImmutable
+         */
+        $exp = $token->claims()->get('exp');
+        return new AccessToken($token->toString(), $exp->getTimestamp() - $now->getTimestamp());
     }
 
     /**
@@ -74,7 +78,12 @@ class AccessTokenManager implements AccessTokenManagerInterface
 
         $parser = new Parser(new JoseEncoder());
 
-        $token = $parser->parse($accessToken);
+        try {
+            $token = $parser->parse($accessToken);
+        } catch (\Throwable $e) {
+            throw new JWTException('Failed to parse access token: ' . $e->getMessage());
+        }
+
         if (!$token instanceof UnencryptedToken) {
             throw new JWTException('Invalid access token');
         }

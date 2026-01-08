@@ -24,6 +24,11 @@
         "pestphp/pest": "^2.36",
         "mockery/mockery": "^1.6"
     },
+    "extra": {
+        "hyperf": {
+            "config": "GaaraHyperf\\JWT\\ConfigProvider"
+        }
+    },
     "repositories": [
         {
             "type": "path",

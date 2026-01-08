@@ -27,11 +27,11 @@ class ServiceProvider implements ServiceProviderInterface
     {
         $config = $container->get(ConfigLoaderInterface::class)->load();
 
-        $accessTokenManagerConfig = array_merge([
+        $accessTokenManagerConfig = array_replace_recursive([
             'default' => [
                 'type' => 'default',
                 'algo' => 'HS512',
-                'ttl' => 600,
+                'expires_in' => 600,
                 'iss' => 'gaara-hyperf-jwt',
                 'aud' => 'gaara-hyperf-app',
             ]

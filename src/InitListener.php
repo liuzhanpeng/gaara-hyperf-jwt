@@ -8,11 +8,13 @@ use GaaraHyperf\ServiceProvider\ServiceProviderRegisterEvent;
 use Hyperf\Event\Contract\ListenerInterface;
 
 /**
- * 注册服务提供器的监听器
+ * 初始化监听器
+ * 
+ * - 注册服务提供者
  * 
  * @author lzpeng <liuzhanpeng@gmail.com>
  */
-class RegisterListener implements ListenerInterface
+class InitListener implements ListenerInterface
 {
     public function listen(): array
     {

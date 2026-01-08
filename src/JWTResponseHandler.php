@@ -29,12 +29,17 @@ class JWTResponseHandler implements AuthenticationSuccessHandlerInterface
     {
         $accessToken = $this->accessTokenManagerResolver->resolve($this->tokenManager)->issue($token);
 
-        $template = $this->responseTemplate ?? '{"access_token": "#ACCESS_TOKEN#", "expires_in": #EXPIRES_IN#}';
+        $template = str_replace(
+            ['#ACCESS_TOKEN#', '#EXPIRES_IN#'],
+            [$accessToken->token(), $accessToken->expiresIn()],
+            $this->responseTemplate ?? '{"access_token": "#ACCESS_TOKEN#", "expires_in": #EXPIRES_IN#}'
+        );
+
         if (!is_string($template) || !is_array(json_decode($template, true))) {
             throw new \InvalidArgumentException('Response template must be a valid JSON string');
         }
 
-        $responseData = json_decode(str_replace(['#ACCESS_TOKEN#', '#EXPIRES_IN#'], [$accessToken->token(), $accessToken->expiresIn()], $template), true);
+        $responseData = json_decode($template, true);
 
         return $this->response->json($responseData);
     }
