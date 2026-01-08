@@ -23,13 +23,13 @@ use Psr\Http\Message\ServerRequestInterface;
 class JWTAuthenticator extends AbstractAuthenticator
 {
     /**
-     * @param AccessTokenManagerInterface $jwtTokenManager
+     * @param AccessTokenManagerInterface $accessTokenManager
      * @param AccessTokenExtractorInterface $accessTokenExtractor
      * @param AuthenticationSuccessHandlerInterface|null $successHandler
      * @param AuthenticationFailureHandlerInterface|null $failureHandler
      */
     public function __construct(
-        private AccessTokenManagerInterface $jwtTokenManager,
+        private AccessTokenManagerInterface $accessTokenManager,
         private AccessTokenExtractorInterface $accessTokenExtractor,
         ?AuthenticationSuccessHandlerInterface $successHandler,
         ?AuthenticationFailureHandlerInterface $failureHandler
@@ -55,7 +55,7 @@ class JWTAuthenticator extends AbstractAuthenticator
             throw new InvalidCredentialsException('No access token found in the request');
         }
 
-        $user = $this->jwtTokenManager->parse($accessToken);
+        $user = $this->accessTokenManager->parse($accessToken);
         $userIdentifier = $user->getIdentifier();
 
         return new Passport(

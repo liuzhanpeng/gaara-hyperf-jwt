@@ -9,7 +9,6 @@ use GaaraHyperf\UserProvider\UserProviderInterface;
 use Symfony\Component\EventDispatcher\EventDispatcher;
 use GaaraHyperf\Authenticator\AuthenticatorInterface;
 use GaaraHyperf\Authenticator\Builder\AbstractAuthenticatorBuilder;
-use GaaraHyperf\JWT\EventListener\TokenRevokeLogoutListener;
 use GaaraHyperf\JWT\AccessTokenManager\AccessTokenManagerResolverInterface;
 
 /**
@@ -30,12 +29,12 @@ class JWTAuthenticatorBuilder extends AbstractAuthenticatorBuilder
             ],
         ], $options);
 
-        $jwtTokenManager = $this->container->get(AccessTokenManagerResolverInterface::class)->resolve($options['token_manager']);
+        $accessTokenManager = $this->container->get(AccessTokenManagerResolverInterface::class)->resolve($options['token_manager']);
         $accessTokenExtractorFactory = $this->container->get(AccessTokenExtractorFactory::class);
         $accessTokenExtractor = $accessTokenExtractorFactory->create($options['token_extractor']);
 
         return new JWTAuthenticator(
-            jwtTokenManager: $jwtTokenManager,
+            accessTokenManager: $accessTokenManager,
             accessTokenExtractor: $accessTokenExtractor,
             successHandler: $this->createSuccessHandler($options),
             failureHandler: $this->createFailureHandler($options),
