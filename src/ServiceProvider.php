@@ -7,9 +7,9 @@ namespace GaaraHyperf\JWT;
 use GaaraHyperf\Authenticator\AuthenticatorFactory;
 use GaaraHyperf\Config\ConfigLoaderInterface;
 use GaaraHyperf\Constants;
-use GaaraHyperf\JWT\TokenManager\TokenManagerFactory;
-use GaaraHyperf\JWT\TokenManager\TokenManagerResolver;
-use GaaraHyperf\JWT\TokenManager\TokenManagerResolverInterface;
+use GaaraHyperf\JWT\AccessTokenManager\AccessTokenManagerFactory;
+use GaaraHyperf\JWT\AccessTokenManager\AccessTokenManagerResolver;
+use GaaraHyperf\JWT\AccessTokenManager\AccessTokenManagerResolverInterface;
 use GaaraHyperf\ServiceProvider\ServiceProviderInterface;
 use Hyperf\Contract\ContainerInterface;
 
@@ -27,17 +27,23 @@ class ServiceProvider implements ServiceProviderInterface
     {
         $config = $container->get(ConfigLoaderInterface::class)->load();
 
-        $tokenManagerCofing = array_merge([
-            'default' => []
-        ], $config->serviceConfig('jwt_token_managers') ?? []);
+        $accessTokenManagerConfig = array_merge([
+            'default' => [
+                'type' => 'default',
+                'algo' => 'HS512',
+                'ttl' => 600,
+                'iss' => 'gaara-hyperf-jwt',
+                'aud' => 'gaara-hyperf-app',
+            ]
+        ], $config->serviceConfig('jwt_access_token_managers') ?? []);
 
-        $tokenManagerMap = [];
-        foreach ($tokenManagerCofing as $name => $config) {
-            $tokenManagerMap[$name] = sprintf('%s.%s.%s', Constants::__PREFIX, 'token_managers', $name);
-            $container->define($tokenManagerMap[$name], fn() => $container->get(TokenManagerFactory::class)->create($config));
+        $accessTokenManagerMap = [];
+        foreach ($accessTokenManagerConfig as $name => $config) {
+            $accessTokenManagerMap[$name] = sprintf('%s.%s.%s', Constants::__PREFIX, 'jwt_access_token_managers', $name);
+            $container->define($accessTokenManagerMap[$name], fn() => $container->get(AccessTokenManagerFactory::class)->create($config));
         }
 
-        $container->define(TokenManagerResolverInterface::class, fn() => new TokenManagerResolver($tokenManagerMap, $container));
+        $container->define(AccessTokenManagerResolverInterface::class, fn() => new AccessTokenManagerResolver($accessTokenManagerMap, $container));
 
         $authenticatorFactory = $container->get(AuthenticatorFactory::class);
         $authenticatorFactory->registerBuilder('jwt', JWTAuthenticatorBuilder::class);

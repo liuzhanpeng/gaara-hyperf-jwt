@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace GaaraHyperf\JWT;
 
 use GaaraHyperf\Authenticator\AuthenticationSuccessHandlerInterface;
-use GaaraHyperf\JWT\TokenManager\TokenManagerResolverInterface;
+use GaaraHyperf\JWT\AccessTokenManager\AccessTokenManagerResolverInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use GaaraHyperf\Token\TokenInterface;
 use GaaraHyperf\Passport\Passport;
@@ -19,7 +19,7 @@ use Psr\Http\Message\ResponseInterface;
 class JWTResponseHandler implements AuthenticationSuccessHandlerInterface
 {
     public function __construct(
-        private TokenManagerResolverInterface $tokenManagerResolver,
+        private AccessTokenManagerResolverInterface $accessTokenManagerResolver,
         private \Hyperf\HttpServer\Contract\ResponseInterface $response,
         private string $tokenManager = 'default',
         private ?string $responseTemplate = null,
@@ -27,14 +27,14 @@ class JWTResponseHandler implements AuthenticationSuccessHandlerInterface
 
     public function handle(string $guardName, ServerRequestInterface $request, TokenInterface $token, Passport $passport): ?ResponseInterface
     {
-        $accessToken = $this->tokenManagerResolver->resolve($this->tokenManager)->issue($token);
+        $accessToken = $this->accessTokenManagerResolver->resolve($this->tokenManager)->issue($token);
 
-        $template = $this->responseTemplate ?? '{"access_token": "#ACCESS_TOKEN#"}';
+        $template = $this->responseTemplate ?? '{"access_token": "#ACCESS_TOKEN#", "expires_in": #EXPIRES_IN#}';
         if (!is_string($template) || !is_array(json_decode($template, true))) {
             throw new \InvalidArgumentException('Response template must be a valid JSON string');
         }
 
-        $responseData = json_decode(str_replace('#ACCESS_TOKEN#', (string)$accessToken, $template), true);
+        $responseData = json_decode(str_replace(['#ACCESS_TOKEN#', '#EXPIRES_IN#'], [$accessToken->token(), $accessToken->expiresIn()], $template), true);
 
         return $this->response->json($responseData);
     }

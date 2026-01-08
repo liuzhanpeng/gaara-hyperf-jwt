@@ -16,8 +16,9 @@
     ],
     "require": {
         "php": ">=8.1",
-        "lzpeng/gaara-hyperf": "dev-develop",
-        "lcobucci/jwt": "^5.6"
+        "lzpeng/gaara-hyperf": "dev-master",
+        "lcobucci/jwt": "^5.6",
+        "lcobucci/clock": "^3.5"
     },
     "require-dev": {
         "pestphp/pest": "^2.36",

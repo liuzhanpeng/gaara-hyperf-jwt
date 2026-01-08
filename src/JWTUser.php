@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace GaaraHyperf\JWT;
 
-use GaaraHyperf\JWT\TokenManager\JWToken;
 use GaaraHyperf\User\UserInterface;
 
 /**
@@ -14,14 +13,21 @@ use GaaraHyperf\User\UserInterface;
  */
 class JWTUser implements UserInterface
 {
-    public function __construct(private JWToken $jwtoken) {}
+    /**
+     * @param string $identifier 用户唯一标识符
+     * @param array $attributes 用户属性集合
+     */
+    public function __construct(
+        private string $identifier,
+        private array $attributes
+    ) {}
 
     /**
      * @inheritDoc
      */
     public function getIdentifier(): string
     {
-        return $this->jwtoken->sub();
+        return $this->identifier;
     }
 
     /**
@@ -31,6 +37,6 @@ class JWTUser implements UserInterface
      */
     public function getAttributes(): array
     {
-        return $this->jwtoken->customClaims();
+        return $this->attributes;
     }
 }

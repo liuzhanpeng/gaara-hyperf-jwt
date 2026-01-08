@@ -8,9 +8,11 @@ use GaaraHyperf\AccessTokenExtractor\AccessTokenExtractorInterface;
 use GaaraHyperf\Authenticator\AbstractAuthenticator;
 use GaaraHyperf\Authenticator\AuthenticationSuccessHandlerInterface;
 use GaaraHyperf\Authenticator\AuthenticationFailureHandlerInterface;
+use GaaraHyperf\Exception\AuthenticationException;
 use GaaraHyperf\Exception\InvalidCredentialsException;
-use GaaraHyperf\JWT\TokenManager\TokenManagerInterface;
+use GaaraHyperf\JWT\AccessTokenManager\AccessTokenManagerInterface;
 use GaaraHyperf\Passport\Passport;
+use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 
 /**
@@ -21,14 +23,14 @@ use Psr\Http\Message\ServerRequestInterface;
 class JWTAuthenticator extends AbstractAuthenticator
 {
     /**
+     * @param AccessTokenManagerInterface $jwtTokenManager
      * @param AccessTokenExtractorInterface $accessTokenExtractor
-     * @param TokenManagerInterface $tokenManager
      * @param AuthenticationSuccessHandlerInterface|null $successHandler
      * @param AuthenticationFailureHandlerInterface|null $failureHandler
      */
     public function __construct(
+        private AccessTokenManagerInterface $jwtTokenManager,
         private AccessTokenExtractorInterface $accessTokenExtractor,
-        private TokenManagerInterface $tokenManager,
         ?AuthenticationSuccessHandlerInterface $successHandler,
         ?AuthenticationFailureHandlerInterface $failureHandler
     ) {
@@ -53,14 +55,27 @@ class JWTAuthenticator extends AbstractAuthenticator
             throw new InvalidCredentialsException('No access token found in the request');
         }
 
-        $jwtToken = $this->tokenManager->resolve($accessToken);
-        $userIdentifier = $jwtToken->sub();
-        $user = new JWTUser($jwtToken);
+        $user = $this->jwtTokenManager->parse($accessToken);
+        $userIdentifier = $user->getIdentifier();
 
         return new Passport(
             $userIdentifier,
             fn() => $user
         );
+    }
+
+    /**
+     * @inheritDoc
+     * @override
+     */
+    public function onAuthenticationFailure(string $guardName, ServerRequestInterface $request, AuthenticationException $exception, ?Passport $passport = null): ?ResponseInterface
+    {
+        if (!is_null($this->failureHandler)) {
+            return $this->failureHandler->handle($guardName, $request, $exception, $passport);
+        }
+
+        $response = new \Hyperf\HttpMessage\Server\Response();
+        return $response->withStatus(401)->withBody(new \Hyperf\HttpMessage\Stream\SwooleStream($exception->getMessage()));
     }
 
     /**
