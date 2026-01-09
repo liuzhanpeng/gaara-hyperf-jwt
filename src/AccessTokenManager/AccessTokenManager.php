@@ -149,12 +149,12 @@ class AccessTokenManager implements AccessTokenManagerInterface
     private function createSigningKey(string $algo): Key
     {
         if ($this->isAsymmetric($algo)) {
-            if (!isset($this->options['private_key']) || empty($this->options['private_key'])) {
+            if (!isset($this->options['secret_key']) || empty($this->options['secret_key'])) {
                 throw new \InvalidArgumentException('Missing private key for asymmetric algorithm');
             }
 
             return InMemory::base64Encoded(
-                $this->options['private_key'],
+                $this->options['secret_key'],
                 $this->options['passphrase'] ?? ''
             );
         }

@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace GaaraHyperf\JWT\RefreshTokenManager;
 
 use GaaraHyperf\Config\CustomConfig;
-use GaaraHyperf\JWT\RefreshToken;
+use GaaraHyperf\Constants;
 use Hyperf\Contract\ContainerInterface;
 
 /**
@@ -31,7 +31,7 @@ class RefreshTokenManagerFactory
         switch ($type) {
             case 'default':
                 return $this->container->make(RefreshTokenManager::class, [
-                    'prefix' => $config['prefix'],
+                    'prefix' => sprintf('%s:jwt_refresh_token:%s', Constants::__PREFIX, $config['prefix'] ?? 'default'),
                     'expiresIn' => $config['expires_in'],
                     'singleSession' => $config['single_session'] ?? false,
                     'refreshTokenLength' => $config['refresh_token_length'],
