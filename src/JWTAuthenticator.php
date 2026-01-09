@@ -15,7 +15,6 @@ use GaaraHyperf\JWT\RefreshTokenManager\RefreshTokenManagerInterface;
 use GaaraHyperf\Passport\Passport;
 use GaaraHyperf\Token\TokenInterface;
 use GaaraHyperf\UserProvider\UserProviderInterface;
-use Hyperf\HttpMessage\Cookie\Cookie;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 
@@ -106,23 +105,13 @@ class JWTAuthenticator extends AbstractAuthenticator
 
         if ($request->getUri()->getPath() === $this->options['refresh_path']) {
             $response = new \Hyperf\HttpMessage\Server\Response();
+            $accessToken = $this->accessTokenManager->issue($token);
             $refreshToken = $this->refreshTokenManager->issue($token);
 
-            if ($this->options['refresh_token_response_type'] === 'cookie') {
-                return $response->withCookie(new Cookie(
-                    name: $this->options['refresh_token_name'] ?? 'refresh_token',
-                    value: $refreshToken->token(),
-                    expire: time() + $refreshToken->expiresIn(),
-                    path: $this->options['refresh_token_cookie_path'] ?? '/',
-                    domain: $this->options['refresh_token_cookie_domain'] ?? '',
-                    httpOnly: true,
-                    secure: $this->options['refresh_token_cookie_secure'] ?? true,
-                    sameSite: $this->options['refresh_token_cookie_samesite'] ?? 'lax',
-                ));
-            }
-
             return $response->withBody(new \Hyperf\HttpMessage\Stream\SwooleStream(json_encode([
-                $this->options['refresh_token_name'] ?? 'refresh_token' => $refreshToken->token(),
+                'access_token' => $accessToken->token(),
+                'expires_in' => $accessToken->expiresIn(),
+                'refresh_token' => $refreshToken->token(),
             ])));
         }
 

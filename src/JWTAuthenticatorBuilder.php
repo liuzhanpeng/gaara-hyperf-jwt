@@ -34,12 +34,6 @@ class JWTAuthenticatorBuilder extends AbstractAuthenticatorBuilder
                 'type' => 'header',
                 'param_name' => 'refresh_token',
             ],
-            'refresh_token_param_name' => 'refresh_token',
-            'refresh_token_response_type' => 'body',
-            'refresh_token_cookie_path' => '/',
-            'refresh_token_cookie_domain' => null,
-            'refresh_token_cookie_secure' => true,
-            'refresh_token_cookie_samesite' => 'lax',
         ], $options);
 
         if (!isset($options['refresh_path'])) {
