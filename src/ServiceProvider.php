@@ -10,6 +10,9 @@ use GaaraHyperf\Constants;
 use GaaraHyperf\JWT\AccessTokenManager\AccessTokenManagerFactory;
 use GaaraHyperf\JWT\AccessTokenManager\AccessTokenManagerResolver;
 use GaaraHyperf\JWT\AccessTokenManager\AccessTokenManagerResolverInterface;
+use GaaraHyperf\JWT\RefreshTokenManager\RefreshTokenManagerFactory;
+use GaaraHyperf\JWT\RefreshTokenManager\RefreshTokenManagerResolver;
+use GaaraHyperf\JWT\RefreshTokenManager\RefreshTokenManagerResolverInterface;
 use GaaraHyperf\ServiceProvider\ServiceProviderInterface;
 use Hyperf\Contract\ContainerInterface;
 
@@ -25,7 +28,7 @@ class ServiceProvider implements ServiceProviderInterface
 {
     public function register(ContainerInterface $container): void
     {
-        $config = $container->get(ConfigLoaderInterface::class)->load();
+        $gaaraConfig = $container->get(ConfigLoaderInterface::class)->load();
 
         $accessTokenManagerConfig = array_replace_recursive([
             'default' => [
@@ -35,7 +38,7 @@ class ServiceProvider implements ServiceProviderInterface
                 'iss' => 'gaara-hyperf-jwt',
                 'aud' => 'gaara-hyperf-app',
             ]
-        ], $config->serviceConfig('jwt_access_token_managers') ?? []);
+        ], $gaaraConfig->serviceConfig('jwt_access_token_managers') ?? []);
 
         $accessTokenManagerMap = [];
         foreach ($accessTokenManagerConfig as $name => $config) {
@@ -44,6 +47,23 @@ class ServiceProvider implements ServiceProviderInterface
         }
 
         $container->define(AccessTokenManagerResolverInterface::class, fn() => new AccessTokenManagerResolver($accessTokenManagerMap, $container));
+
+        $refreshTokenManagerConfig = array_replace_recursive([
+            'default' => [
+                'type' => 'default',
+                'prefix' => 'default',
+                'expires_in' => 60 * 60 * 24 * 14,
+                'refresh_token_length' => 32,
+            ]
+        ], $gaaraConfig->serviceConfig('jwt_refresh_token_managers') ?? []);
+
+        $refreshTokenManagerMap = [];
+        foreach ($refreshTokenManagerConfig as $name => $config) {
+            $refreshTokenManagerMap[$name] = sprintf('%s.%s.%s', Constants::__PREFIX, 'jwt_refresh_token_managers', $name);
+            $container->define($refreshTokenManagerMap[$name], fn() => $container->get(RefreshTokenManagerFactory::class)->create($config));
+        }
+
+        $container->define(RefreshTokenManagerResolverInterface::class, fn() => new RefreshTokenManagerResolver($refreshTokenManagerMap, $container));
 
         $authenticatorFactory = $container->get(AuthenticatorFactory::class);
         $authenticatorFactory->registerBuilder('jwt', JWTAuthenticatorBuilder::class);

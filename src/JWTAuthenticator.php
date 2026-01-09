@@ -104,6 +104,10 @@ class JWTAuthenticator extends AbstractAuthenticator
         }
 
         if ($request->getUri()->getPath() === $this->options['refresh_path']) {
+            // 撤消旧的刷新令牌
+            $refreshToken = $this->refreshTokenExtractor->extract($request);
+            $this->refreshTokenManager->revoke($refreshToken);
+
             $response = new \Hyperf\HttpMessage\Server\Response();
             $accessToken = $this->accessTokenManager->issue($token);
             $refreshToken = $this->refreshTokenManager->issue($token);

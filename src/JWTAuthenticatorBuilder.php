@@ -9,8 +9,8 @@ use GaaraHyperf\UserProvider\UserProviderInterface;
 use Symfony\Component\EventDispatcher\EventDispatcher;
 use GaaraHyperf\Authenticator\AuthenticatorInterface;
 use GaaraHyperf\Authenticator\Builder\AbstractAuthenticatorBuilder;
+use GaaraHyperf\JWT\EventListener\JWTRevokeLogoutListener;
 use GaaraHyperf\JWT\AccessTokenManager\AccessTokenManagerResolverInterface;
-use GaaraHyperf\JWT\RefreshTokenManager\RefreshTokenManager;
 use GaaraHyperf\JWT\RefreshTokenManager\RefreshTokenManagerResolverInterface;
 
 /**
@@ -31,7 +31,7 @@ class JWTAuthenticatorBuilder extends AbstractAuthenticatorBuilder
             ],
             'refresh_token_manager' => 'default',
             'refresh_token_extractor' => [
-                'type' => 'header',
+                'type' => 'body',
                 'param_name' => 'refresh_token',
             ],
         ], $options);
@@ -45,6 +45,11 @@ class JWTAuthenticatorBuilder extends AbstractAuthenticatorBuilder
         $accessTokenExtractorFactory = $this->container->get(AccessTokenExtractorFactory::class);
         $accessTokenExtractor = $accessTokenExtractorFactory->create($options['access_token_extractor']);
         $refreshTokenExtractor = $accessTokenExtractorFactory->create($options['refresh_token_extractor']);
+
+        $eventDispatcher->addSubscriber(new JWTRevokeLogoutListener(
+            refreshTokenManager: $refreshTokenManager,
+            refreshTokenExtractor: $refreshTokenExtractor,
+        ));
 
         return new JWTAuthenticator(
             accessTokenManager: $accessTokenManager,

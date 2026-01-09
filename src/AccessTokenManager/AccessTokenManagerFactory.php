@@ -37,12 +37,12 @@ class AccessTokenManagerFactory
             case 'custom':
                 $customConfig = CustomConfig::from($config);
 
-                $jwTokenManager = $this->container->make($customConfig->class(), $customConfig->params());
-                if (!$jwTokenManager instanceof AccessTokenManagerInterface) {
+                $accessTokenManager = $this->container->make($customConfig->class(), $customConfig->params());
+                if (!$accessTokenManager instanceof AccessTokenManagerInterface) {
                     throw new \LogicException(sprintf('The custom AccessTokenManager must implement %s.', AccessTokenManagerInterface::class));
                 }
 
-                return $jwTokenManager;
+                return $accessTokenManager;
             default:
                 throw new \InvalidArgumentException(sprintf('Unsupported access token manager type: %s', $type));
         }
