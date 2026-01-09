@@ -39,8 +39,6 @@ class JWTResponseHandler implements AuthenticationSuccessHandlerInterface
             throw new \InvalidArgumentException('Response template must be a valid JSON string');
         }
 
-        $responseData = json_decode($template, true);
-
-        return $this->response->json($responseData);
+        return $this->response->json(json_decode($template, true));
     }
 }
