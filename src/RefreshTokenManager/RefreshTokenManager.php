@@ -19,12 +19,14 @@ class RefreshTokenManager implements RefreshTokenManagerInterface
      * @param CacheInterface $cache
      * @param string $prefix
      * @param integer $expiresIn
+     * @param bool $singleSession
      * @param integer $refreshTokenLength
      */
     public function __construct(
         private CacheInterface $cache,
         private string $prefix,
         private int $expiresIn,
+        private bool $singleSession,
         private int $refreshTokenLength,
     ) {}
 
@@ -35,7 +37,16 @@ class RefreshTokenManager implements RefreshTokenManagerInterface
     {
         $refreshToken = bin2hex(random_bytes($this->refreshTokenLength));
 
-        $this->cache->set($this->getCacheKey($refreshToken), $token, $this->expiresIn);
+        if ($this->singleSession) {
+            $preRefreshToken = $this->cache->get($this->getUserCacheKey($token->getUserIdentifier()));
+            if (!is_null($preRefreshToken)) {
+                $this->cache->delete($this->getRefreshTokenCacheKey($preRefreshToken));
+            }
+
+            $this->cache->set($this->getUserCacheKey($token->getUserIdentifier()), $refreshToken, $this->expiresIn);
+        }
+
+        $this->cache->set($this->getRefreshTokenCacheKey($refreshToken), $token, $this->expiresIn);
 
         return new RefreshToken($refreshToken, $this->expiresIn);
     }
@@ -45,7 +56,7 @@ class RefreshTokenManager implements RefreshTokenManagerInterface
      */
     public function resolve(string $refreshToken): ?TokenInterface
     {
-        $cacheKey = $this->getCacheKey($refreshToken);
+        $cacheKey = $this->getRefreshTokenCacheKey($refreshToken);
         $token = $this->cache->get($cacheKey);
         if (is_null($token)) {
             return null;
@@ -59,7 +70,14 @@ class RefreshTokenManager implements RefreshTokenManagerInterface
      */
     public function revoke(string $refreshToken): void
     {
-        $this->cache->delete($this->getCacheKey($refreshToken));
+        if ($this->singleSession) {
+            $token = $this->resolve($refreshToken);
+            if (!is_null($token)) {
+                $this->cache->delete($this->getUserCacheKey($token->getUserIdentifier()));
+            }
+        }
+
+        $this->cache->delete($this->getRefreshTokenCacheKey($refreshToken));
     }
 
     /**
@@ -68,8 +86,19 @@ class RefreshTokenManager implements RefreshTokenManagerInterface
      * @param string $refreshToken
      * @return string
      */
-    private function getCacheKey(string $refreshToken): string
+    private function getRefreshTokenCacheKey(string $refreshToken): string
     {
-        return sprintf('%s%s', $this->prefix, $refreshToken);
+        return sprintf('%s:%s', $this->prefix, $refreshToken);
+    }
+
+    /**
+     * 返回用户Token键
+     *
+     * @param string $identifier
+     * @return string
+     */
+    private function getUserCacheKey(string $identifier): string
+    {
+        return sprintf('%s:user:%s', $this->prefix, $identifier);
     }
 }

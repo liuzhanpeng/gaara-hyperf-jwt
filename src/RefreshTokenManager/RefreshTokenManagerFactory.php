@@ -33,6 +33,7 @@ class RefreshTokenManagerFactory
                 return $this->container->make(RefreshTokenManager::class, [
                     'prefix' => $config['prefix'],
                     'expiresIn' => $config['expires_in'],
+                    'singleSession' => $config['single_session'] ?? false,
                     'refreshTokenLength' => $config['refresh_token_length'],
                 ]);
             case 'custom':

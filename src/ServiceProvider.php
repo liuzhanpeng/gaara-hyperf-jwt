@@ -53,6 +53,7 @@ class ServiceProvider implements ServiceProviderInterface
                 'type' => 'default',
                 'prefix' => 'default',
                 'expires_in' => 60 * 60 * 24 * 14,
+                'single_session' => false,
                 'refresh_token_length' => 32,
             ]
         ], $gaaraConfig->serviceConfig('jwt_refresh_token_managers') ?? []);
