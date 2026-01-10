@@ -46,14 +46,14 @@ return [
                     'access_token_manager' => 'default', // 关联 services.jwt_access_token_managers 下的配置
                     // 'access_token_extractor' => [ // 可选，默认从 Authorization Header 中提取 Bearer Token
                     //     'type' => 'header',
-                    //     'param_name' => 'Authorization',
-                    //     'param_type' => 'Bearer',
+                    //     'field' => 'Authorization',
+                    //     'scheme' => 'Bearer',
                     // ],
                     'refresh_path' => '/user/refresh-token', // 必须; 刷新 Token 的请求路径
                     'refresh_token_manager' => 'default', // 关联 services.jwt_refresh_token_managers 下的配置
                     // 'refresh_token_extractor' => [ // 可选，默认从请求体中提取 refresh_token
                     //     'type' => 'body', // 可选值：body|cookie
-                    //     'param_name' => 'refresh_token', // refresh_token 参数名
+                    //     'field' => 'refresh_token', // refresh_token 参数名
                     // ],
                 ],
             ]

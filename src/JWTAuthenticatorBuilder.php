@@ -26,13 +26,13 @@ class JWTAuthenticatorBuilder extends AbstractAuthenticatorBuilder
             'access_token_manager' => 'default',
             'access_token_extractor' => [
                 'type' => 'header',
-                'param_name' => 'Authorization',
-                'param_type' => 'Bearer',
+                'field' => 'Authorization',
+                'scheme' => 'Bearer',
             ],
             'refresh_token_manager' => 'default',
             'refresh_token_extractor' => [
                 'type' => 'body',
-                'param_name' => 'refresh_token',
+                'field' => 'refresh_token',
             ],
         ], $options);
 
