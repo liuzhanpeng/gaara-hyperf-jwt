@@ -37,7 +37,7 @@ class ServiceProvider implements ServiceProviderInterface
             'default' => [
                 'type' => 'default',
                 'algo' => 'HS512',
-                'expires_in' => 600,
+                'ttl' => 600,
                 'iss' => 'gaara-hyperf-jwt',
                 'aud' => ''
             ]
@@ -55,7 +55,7 @@ class ServiceProvider implements ServiceProviderInterface
             'default' => [
                 'type' => 'default',
                 'prefix' => 'default',
-                'expires_in' => 60 * 60 * 24 * 14,
+                'ttl' => 60 * 60 * 24 * 14,
                 'single_session' => false,
                 'refresh_token_length' => 64,
             ]

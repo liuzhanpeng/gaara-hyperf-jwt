@@ -38,7 +38,7 @@ class AccessTokenManager implements AccessTokenManagerInterface
      * @param string $secretKey 对称算法密钥 或 非对称算法私钥
      * @param string|null $publicKey 非对称算法公钥
      * @param string $passphrase 非对称算法私钥密码
-     * @param integer $expiresIn Access Token 有效期，单位：秒
+     * @param integer $ttl Access Token 有效期，单位：秒
      * @param integer|null $leeway 允许的时间偏差，单位：秒
      * @param string $iss Issuer 声明
      * @param string $aud Audience 声明
@@ -48,7 +48,7 @@ class AccessTokenManager implements AccessTokenManagerInterface
         private string $secretKey,
         private ?string $publicKey,
         private string $passphrase,
-        private int $expiresIn,
+        private int $ttl,
         private ?int $leeway,
         private string $iss,
         private string $aud,
@@ -78,7 +78,7 @@ class AccessTokenManager implements AccessTokenManagerInterface
         $now = new DateTimeImmutable();
         $token = $builder
             ->issuedAt($now)
-            ->expiresAt($now->modify('+' . $this->expiresIn . ' seconds'))
+            ->expiresAt($now->modify('+' . $this->ttl . ' seconds'))
             ->canOnlyBeUsedAfter($now)
             ->issuedBy($this->iss)
             ->permittedFor($this->aud)
@@ -86,7 +86,7 @@ class AccessTokenManager implements AccessTokenManagerInterface
             ->identifiedBy(bin2hex(random_bytes(16)))
             ->getToken($signer, $key);
 
-        return new AccessToken($token->toString(), $this->expiresIn);
+        return new AccessToken($token->toString(), $this->ttl);
     }
 
     /**

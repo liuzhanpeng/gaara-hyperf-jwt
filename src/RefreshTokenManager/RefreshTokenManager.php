@@ -18,14 +18,14 @@ class RefreshTokenManager implements RefreshTokenManagerInterface
     /**
      * @param CacheInterface $cache
      * @param string $prefix
-     * @param integer $expiresIn
+     * @param integer $ttl
      * @param bool $singleSession
      * @param integer $refreshTokenLength
      */
     public function __construct(
         private CacheInterface $cache,
         private string $prefix,
-        private int $expiresIn,
+        private int $ttl,
         private bool $singleSession,
         private int $refreshTokenLength,
     ) {
@@ -47,12 +47,12 @@ class RefreshTokenManager implements RefreshTokenManagerInterface
                 $this->cache->delete($this->getRefreshTokenCacheKey($preRefreshToken));
             }
 
-            $this->cache->set($this->getUserCacheKey($token->getUserIdentifier()), $refreshToken, $this->expiresIn);
+            $this->cache->set($this->getUserCacheKey($token->getUserIdentifier()), $refreshToken, $this->ttl);
         }
 
-        $this->cache->set($this->getRefreshTokenCacheKey($refreshToken), $token, $this->expiresIn);
+        $this->cache->set($this->getRefreshTokenCacheKey($refreshToken), $token, $this->ttl);
 
-        return new RefreshToken($refreshToken, $this->expiresIn);
+        return new RefreshToken($refreshToken, $this->ttl);
     }
 
     /**

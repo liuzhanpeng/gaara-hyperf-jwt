@@ -34,7 +34,7 @@ class AccessTokenManagerFactory
                     'secretKey' => $config['secret_key'] ?? '',
                     'publicKey' => $config['public_key'] ?? null,
                     'passphrase' => $config['passphrase'] ?? '',
-                    'expiresIn' => $config['expires_in'] ?? 600,
+                    'ttl' => $config['ttl'] ?? 600,
                     'leeway' => $config['leeway'] ?? null,
                     'iss' => $config['iss'] ?? 'gaara-hyperf-jwt',
                     'aud' => $config['aud'] ?? '',

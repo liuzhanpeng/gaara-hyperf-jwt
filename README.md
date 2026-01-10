@@ -67,7 +67,7 @@ return [
                 'secret_key' => 'your-secret', // 必须; 对称算法密钥 或 非对称算法私钥
                 // 'public_key' => '', // algo为非对称算法时必须；非对称算法公钥
                 // 'passphrase' => '', // algo为非对称算法时可选; 私钥密码（如果有的话）
-                // 'expires_in' => 600, // 可选；Access Token 有效期，单位：秒； 默认：600秒（10分钟）; 建议设置为5-10分钟
+                // 'ttl' => 600, // 可选；Access Token 有效期，单位：秒； 默认：600秒（10分钟）; 建议设置为5-10分钟
                 // 'leeway' => 5, // 可选; 允许的时间偏差，单位：秒; 默认: null
                 // 'iss' => 'xxx', // 可选；Issuer 声明
                 // 'aud' => 'xxx-app', // 可选；Audience 声明; 如果需要区分不同应用，可设置此值
@@ -77,7 +77,7 @@ return [
             // 'default' => [ // 这里内置的 refresh token 管理器; 可根据需要自修改参数
             //     'type' => 'default', // 可选，默认值: default; 目前仅支持 default 和 custom 两种类型
             //     'prefix' => 'default', // 可选; refresh token缓存前缀，默认：default； 如果存在多个管理器，需设置不同的前缀以区分
-            //     'expires_in' => 60 * 60 * 24 * 14, // 可选； Refresh Token 有效期，单位：秒； 默认：14天
+            //     'ttl' => 60 * 60 * 24 * 14, // 可选； Refresh Token 有效期，单位：秒； 默认：14天
             //     'single_session' => false, // 可选；是否启用单会话模式；默认：false；启用后，同一用户只能存在一个有效的 Refresh Token，登录会使之前的 Refresh Token 失效
             //     'refresh_token_length' => 64, // 可选；Refresh Token 字符串长度；默认：64
             // ],
