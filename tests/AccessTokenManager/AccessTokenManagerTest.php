@@ -5,40 +5,6 @@ declare(strict_types=1);
 use GaaraHyperf\JWT\AccessTokenManager\AccessTokenManager;
 use GaaraHyperf\Token\TokenInterface;
 
-class FakeToken implements TokenInterface
-{
-    public function __construct(
-        private string $guardName,
-        private string $userIdentifier,
-        private array $attributes = [],
-    ) {}
-
-    public function getGuardName(): string
-    {
-        return $this->guardName;
-    }
-
-    public function getUserIdentifier(): string
-    {
-        return $this->userIdentifier;
-    }
-
-    public function hasAttribute(string $name): bool
-    {
-        return array_key_exists($name, $this->attributes);
-    }
-
-    public function getAttribute(string $name): mixed
-    {
-        return $this->attributes[$name] ?? null;
-    }
-
-    public function setAttribute(string $name, mixed $value): void
-    {
-        $this->attributes[$name] = $value;
-    }
-}
-
 function generateEcKeyPair(): array
 {
     $config = [
@@ -72,9 +38,17 @@ describe('AccessTokenManager', function () {
     [$esPrivateKey, $esPublicKey] = generateEcKeyPair();
     [$rsaPrivateKey, $rsaPublicKey] = generateRsaKeyPair();
 
-    it('issues and parses a valid token', function () use ($secret) {
+    $createToken = function (string $userIdentifier = 'user-123'): TokenInterface {
+        $token = \Mockery::mock(TokenInterface::class);
+        $token->shouldReceive('getGuardName')->andReturn('guard');
+        $token->shouldReceive('getUserIdentifier')->andReturn($userIdentifier);
+
+        return $token;
+    };
+
+    it('issues and parses a valid token', function () use ($secret, $createToken) {
         $manager = new AccessTokenManager('HS256', $secret, null, '', 600, null, 'issuer', 'audience');
-        $token = new FakeToken('guard', 'user-123');
+        $token = $createToken();
 
         $accessToken = $manager->issue($token);
         expect($accessToken->token())->not->toBeEmpty();
@@ -92,19 +66,19 @@ describe('AccessTokenManager', function () {
         $manager->parse('not-a-jwt');
     })->throws(\RuntimeException::class, 'Failed to parse access token');
 
-    it('rejects expired tokens', function () use ($secret) {
+    it('rejects expired tokens', function () use ($secret, $createToken) {
         $manager = new AccessTokenManager('HS256', $secret, null, '', -10, null, 'issuer', 'audience');
-        $token = new FakeToken('guard', 'user-123');
+        $token = $createToken();
 
         $accessToken = $manager->issue($token);
 
         $manager->parse($accessToken->token());
     })->throws(\RuntimeException::class, 'Access token is expired or not yet valid');
 
-    it('rejects tokens with invalid signature', function () use ($secret) {
+    it('rejects tokens with invalid signature', function () use ($secret, $createToken) {
         $issuer = 'issuer';
         $audience = 'audience';
-        $token = new FakeToken('guard', 'user-123');
+        $token = $createToken();
 
         $issuerManager = new AccessTokenManager('HS256', $secret, null, '', 600, null, $issuer, $audience);
         $accessToken = $issuerManager->issue($token);
@@ -113,8 +87,8 @@ describe('AccessTokenManager', function () {
         $parserManager->parse($accessToken->token());
     })->throws(\RuntimeException::class, 'Invalid access token signature');
 
-    it('rejects tokens with wrong issuer', function () use ($secret) {
-        $token = new FakeToken('guard', 'user-123');
+    it('rejects tokens with wrong issuer', function () use ($secret, $createToken) {
+        $token = $createToken();
 
         $issuerManager = new AccessTokenManager('HS256', $secret, null, '', 600, null, 'issuer-a', 'audience');
         $accessToken = $issuerManager->issue($token);
@@ -123,8 +97,8 @@ describe('AccessTokenManager', function () {
         $parserManager->parse($accessToken->token());
     })->throws(\RuntimeException::class, 'Invalid access token issuer');
 
-    it('rejects tokens with wrong audience', function () use ($secret) {
-        $token = new FakeToken('guard', 'user-123');
+    it('rejects tokens with wrong audience', function () use ($secret, $createToken) {
+        $token = $createToken();
 
         $issuerManager = new AccessTokenManager('HS256', $secret, null, '', 600, null, 'issuer', 'audience-a');
         $accessToken = $issuerManager->issue($token);
@@ -133,9 +107,9 @@ describe('AccessTokenManager', function () {
         $parserManager->parse($accessToken->token());
     })->throws(\RuntimeException::class, 'Access token not permitted for this audience');
 
-    it('issues and parses ES256 tokens with asymmetric keys', function () use ($esPrivateKey, $esPublicKey) {
+    it('issues and parses ES256 tokens with asymmetric keys', function () use ($esPrivateKey, $esPublicKey, $createToken) {
         $manager = new AccessTokenManager('ES256', $esPrivateKey, $esPublicKey, '', 600, null, 'issuer', 'audience');
-        $token = new FakeToken('guard', 'user-123');
+        $token = $createToken();
 
         $accessToken = $manager->issue($token);
         $user = $manager->parse($accessToken->token());
@@ -143,9 +117,9 @@ describe('AccessTokenManager', function () {
         expect($user->getIdentifier())->toBe('user-123');
     });
 
-    it('issues and parses RS256 tokens with asymmetric keys', function () use ($rsaPrivateKey, $rsaPublicKey) {
+    it('issues and parses RS256 tokens with asymmetric keys', function () use ($rsaPrivateKey, $rsaPublicKey, $createToken) {
         $manager = new AccessTokenManager('RS256', $rsaPrivateKey, $rsaPublicKey, '', 600, null, 'issuer', 'audience');
-        $token = new FakeToken('guard', 'user-123');
+        $token = $createToken();
 
         $accessToken = $manager->issue($token);
         $user = $manager->parse($accessToken->token());
