@@ -5,7 +5,7 @@
 ## Installation
 
 ```bash
-composer require gaara-hyperf/jwt
+composer require lzpeng/gaara-hyperf-jwt
 ```
 
 ## Usage
