@@ -32,9 +32,9 @@ class RefreshTokenManagerFactory
             case 'default':
                 return $this->container->make(RefreshTokenManager::class, [
                     'prefix' => sprintf('%s:jwt_refresh_token:%s', Constants::__PREFIX, $config['prefix'] ?? 'default'),
-                    'expiresIn' => $config['expires_in'],
+                    'expiresIn' => $config['expires_in'] ?? (60 * 60 * 24 * 14),
                     'singleSession' => $config['single_session'] ?? false,
-                    'refreshTokenLength' => $config['refresh_token_length'],
+                    'refreshTokenLength' => $config['refresh_token_length'] ?? 64,
                 ]);
             case 'custom':
                 $customConfig = CustomConfig::from($config);

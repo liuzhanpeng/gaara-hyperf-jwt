@@ -46,12 +46,12 @@ class AccessTokenManager implements AccessTokenManagerInterface
     public function __construct(
         private string $algo,
         private string $secretKey,
-        private ?string $publicKey = null,
-        private string $passphrase = '',
-        private int $expiresIn = 600,
-        private ?int $leeway = null,
-        private string $iss = 'gaara-hyperf-jwt',
-        private string $aud = '',
+        private ?string $publicKey,
+        private string $passphrase,
+        private int $expiresIn,
+        private ?int $leeway,
+        private string $iss,
+        private string $aud,
     ) {
         $this->algo = strtoupper($this->algo);
 

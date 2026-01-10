@@ -34,7 +34,7 @@ return [
                             'refresh_token_manager' => 'default', // 关联 services.jwt_refresh_token_managers 下的配置; 与认证器共享同一个 Refresh Token 管理器
                             // 'refresh_token_response_type' => 'body', // 响应类型; 可选值：body|cookie，默认：body
                             // 'response_template' => '{"access_token": "#ACCESS_TOKEN#", "expires_in": #EXPIRES_IN#, "refresh_token": "#REFRESH_TOKEN#"}', // refresh_token_response_type=='bodhy'时生效；可选，自定义响应模板，支持 #ACCESS_TOKEN#、#EXPIRES_IN#、#REFRESH_TOKEN# 占位符
-                            // 'refresh_token_cookie_param_name' => 'refresh_token', // 可选; refresh_token 参数名，默认：refresh_token
+                            // 'refresh_token_cookie_name' => 'refresh_token', // 可选; refresh_token 参数名，默认：refresh_token
                             // 'refresh_token_cookie_path' => '/', // refresh_token_response_type=='cookie' 时生效，Cookie 路径，默认：/
                             // 'refresh_token_cookie_domain' => null, // refresh_token_response_type=='cookie' 时生效，Cookie 域名，默认：null
                             // 'refresh_token_cookie_secure' => true, // refresh_token_response_type=='cookie' 时生效，Cookie 是否仅通过 HTTPS 传输，默认：true
