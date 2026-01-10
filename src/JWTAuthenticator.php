@@ -11,6 +11,7 @@ use GaaraHyperf\Authenticator\AuthenticationFailureHandlerInterface;
 use GaaraHyperf\Exception\AuthenticationException;
 use GaaraHyperf\Exception\InvalidCredentialsException;
 use GaaraHyperf\JWT\AccessTokenManager\AccessTokenManagerInterface;
+use GaaraHyperf\JWT\Exception\JWTException;
 use GaaraHyperf\JWT\RefreshTokenManager\RefreshTokenManagerInterface;
 use GaaraHyperf\Passport\Passport;
 use GaaraHyperf\Token\TokenInterface;
@@ -26,26 +27,29 @@ use Psr\Http\Message\ServerRequestInterface;
 class JWTAuthenticator extends AbstractAuthenticator
 {
     /**
+     * @param string $refreshPath
      * @param AccessTokenManagerInterface $accessTokenManager
      * @param AccessTokenExtractorInterface $accessTokenExtractor
      * @param RefreshTokenManagerInterface $refreshTokenManager
      * @param AccessTokenExtractorInterface $refreshTokenExtractor
      * @param UserProviderInterface $userProvider
-     * @param array $options
      * @param AuthenticationSuccessHandlerInterface|null $successHandler
      * @param AuthenticationFailureHandlerInterface|null $failureHandler
      */
     public function __construct(
+        private string $refreshPath,
         private AccessTokenManagerInterface $accessTokenManager,
         private AccessTokenExtractorInterface $accessTokenExtractor,
         private RefreshTokenManagerInterface $refreshTokenManager,
         private AccessTokenExtractorInterface $refreshTokenExtractor,
         private UserProviderInterface $userProvider,
-        private array $options,
         ?AuthenticationSuccessHandlerInterface $successHandler,
         ?AuthenticationFailureHandlerInterface $failureHandler
     ) {
         parent::__construct($successHandler, $failureHandler);
+        if (empty($this->refreshPath)) {
+            throw new \InvalidArgumentException('The "refresh_path" option is required.');
+        }
     }
 
     /**
@@ -54,7 +58,7 @@ class JWTAuthenticator extends AbstractAuthenticator
     public function supports(ServerRequestInterface $request): bool
     {
         return $this->accessTokenExtractor->extract($request) !== null
-            || ($request->getMethod() === 'POST' && $request->getUri()->getPath() === $this->options['refresh_path']);
+            || ($request->getMethod() === 'POST' && $request->getUri()->getPath() === $this->refreshPath);
     }
 
     /**
@@ -62,7 +66,7 @@ class JWTAuthenticator extends AbstractAuthenticator
      */
     public function authenticate(ServerRequestInterface $request): Passport
     {
-        if ($request->getUri()->getPath() === $this->options['refresh_path']) {
+        if ($request->getUri()->getPath() === $this->refreshPath) {
             $refreshToken = $this->refreshTokenExtractor->extract($request);
             if ($refreshToken === null) {
                 throw new InvalidCredentialsException('No refresh token found in the request');
@@ -84,13 +88,16 @@ class JWTAuthenticator extends AbstractAuthenticator
             throw new InvalidCredentialsException('No access token found in the request');
         }
 
-        $user = $this->accessTokenManager->parse($accessToken);
-        $userIdentifier = $user->getIdentifier();
-
-        return new Passport(
-            $userIdentifier,
-            fn() => $user
-        );
+        try {
+            $user = $this->accessTokenManager->parse($accessToken);
+            $userIdentifier = $user->getIdentifier();
+            return new Passport(
+                $userIdentifier,
+                fn() => $user
+            );
+        } catch (\RuntimeException $e) {
+            throw new JWTException($e->getMessage(), $accessToken);
+        }
     }
 
     /**
@@ -103,7 +110,7 @@ class JWTAuthenticator extends AbstractAuthenticator
             return $this->successHandler->handle($guardName, $request, $token, $passport);
         }
 
-        if ($request->getUri()->getPath() === $this->options['refresh_path']) {
+        if ($request->getUri()->getPath() === $this->refreshPath) {
             // 撤消旧的刷新令牌
             $refreshToken = $this->refreshTokenExtractor->extract($request);
             $this->refreshTokenManager->revoke($refreshToken);
@@ -132,7 +139,7 @@ class JWTAuthenticator extends AbstractAuthenticator
             return $this->failureHandler->handle($guardName, $request, $exception, $passport);
         }
 
-        if ($request->getUri()->getPath() === $this->options['refresh_path']) {
+        if ($request->getUri()->getPath() === $this->refreshPath) {
             $response = new \Hyperf\HttpMessage\Server\Response();
             return $response->withStatus(401)->withBody(new \Hyperf\HttpMessage\Stream\SwooleStream(json_encode([
                 'error' => $exception->getMessage(),

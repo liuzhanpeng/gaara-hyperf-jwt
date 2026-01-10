@@ -28,14 +28,18 @@ class RefreshTokenManager implements RefreshTokenManagerInterface
         private int $expiresIn,
         private bool $singleSession,
         private int $refreshTokenLength,
-    ) {}
+    ) {
+        if ($refreshTokenLength < 16 || $refreshTokenLength % 2 !== 0) {
+            throw new \InvalidArgumentException('The refresh token length must be an even number and not less than 16.');
+        }
+    }
 
     /**
      * @inheritDoc
      */
     public function issue(TokenInterface $token): RefreshToken
     {
-        $refreshToken = bin2hex(random_bytes($this->refreshTokenLength));
+        $refreshToken = bin2hex(random_bytes($this->refreshTokenLength / 2));
 
         if ($this->singleSession) {
             $preRefreshToken = $this->cache->get($this->getUserCacheKey($token->getUserIdentifier()));

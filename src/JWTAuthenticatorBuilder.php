@@ -52,12 +52,12 @@ class JWTAuthenticatorBuilder extends AbstractAuthenticatorBuilder
         ));
 
         return new JWTAuthenticator(
+            refreshPath: $options['refresh_path'],
             accessTokenManager: $accessTokenManager,
             accessTokenExtractor: $accessTokenExtractor,
             refreshTokenManager: $refreshTokenManager,
             refreshTokenExtractor: $refreshTokenExtractor,
             userProvider: $userProvider,
-            options: $options,
             successHandler: $this->createSuccessHandler($options),
             failureHandler: $this->createFailureHandler($options),
         );

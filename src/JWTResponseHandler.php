@@ -27,7 +27,7 @@ class JWTResponseHandler implements AuthenticationSuccessHandlerInterface
         private string $refreshTokenManager = 'default',
         private ?string $refreshTokenResponseType = null,
         private ?string $responseTemplate = null,
-        private ?string $refreshTokenCookieName = null,
+        private string $refreshTokenCookieParamName = 'refresh_token',
         private ?string $refreshTokenCookiePath = null,
         private ?string $refreshTokenCookieDomain = null,
         private ?bool $refreshTokenCookieSecure = null,
@@ -41,7 +41,7 @@ class JWTResponseHandler implements AuthenticationSuccessHandlerInterface
 
         if ($this->refreshTokenResponseType === 'cookie') {
             $cookie = new \Hyperf\HttpMessage\Cookie\Cookie(
-                name: $this->refreshTokenCookieName ?? 'refresh_token',
+                name: $this->refreshTokenCookieParamName,
                 value: $refreshToken->token(),
                 expire: time() + $refreshToken->expiresIn(),
                 path: $this->refreshTokenCookiePath ?? '/',

@@ -29,11 +29,16 @@ class AccessTokenManagerFactory
 
         switch ($type) {
             case 'default':
-                if (!isset($config['secret_key']) || empty($config['secret_key'])) {
-                    throw new \InvalidArgumentException('Missing secret key');
-                }
-
-                return $this->container->make(AccessTokenManager::class, ['options' => $config]);
+                return $this->container->make(AccessTokenManager::class, [
+                    'algo' => $config['algo'] ?? 'HS512',
+                    'secretKey' => $config['secret_key'] ?? '',
+                    'publicKey' => $config['public_key'] ?? null,
+                    'passphrase' => $config['passphrase'] ?? '',
+                    'expiresIn' => $config['expires_in'] ?? 600,
+                    'leeway' => $config['leeway'] ?? null,
+                    'iss' => $config['iss'] ?? 'gaara-hyperf-jwt',
+                    'aud' => $config['aud'] ?? '',
+                ]);
             case 'custom':
                 $customConfig = CustomConfig::from($config);
 

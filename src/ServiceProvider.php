@@ -26,6 +26,9 @@ use Hyperf\Contract\ContainerInterface;
  */
 class ServiceProvider implements ServiceProviderInterface
 {
+    /**
+     * @inheritDoc
+     */
     public function register(ContainerInterface $container): void
     {
         $gaaraConfig = $container->get(ConfigLoaderInterface::class)->load();
@@ -36,7 +39,7 @@ class ServiceProvider implements ServiceProviderInterface
                 'algo' => 'HS512',
                 'expires_in' => 600,
                 'iss' => 'gaara-hyperf-jwt',
-                'aud' => 'gaara-hyperf-app',
+                'aud' => ''
             ]
         ], $gaaraConfig->serviceConfig('jwt_access_token_managers') ?? []);
 
@@ -54,7 +57,7 @@ class ServiceProvider implements ServiceProviderInterface
                 'prefix' => 'default',
                 'expires_in' => 60 * 60 * 24 * 14,
                 'single_session' => false,
-                'refresh_token_length' => 32,
+                'refresh_token_length' => 64,
             ]
         ], $gaaraConfig->serviceConfig('jwt_refresh_token_managers') ?? []);
 
