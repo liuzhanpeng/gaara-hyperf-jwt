@@ -62,7 +62,6 @@ class JWTAuthenticatorBuilder extends AbstractAuthenticatorBuilder
             refreshPath: $options['refresh_path'] ?? '',
             accessTokenManager: $accessTokenManager,
             accessTokenExtractor: $this->createAccessTokenExtractor($options),
-            userProvider: $userProvider,
             refreshTokenEnabled: $refreshTokenEnabled,
             refreshTokenManager: $refreshTokenManager,
             refreshTokenExtractor: $refreshTokenExtractor,

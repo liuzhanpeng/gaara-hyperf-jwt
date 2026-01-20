@@ -69,22 +69,27 @@ class AccessTokenManager implements AccessTokenManagerInterface
     /**
      * @inheritDoc
      */
-    public function issue(TokenInterface $token): AccessToken
+    public function issue(TokenInterface $token, array $customClaims = []): AccessToken
     {
         $signer = $this->getSigner();
         $key = $this->getSigningKey();
 
         $builder = Builder::new(new JoseEncoder(), ChainedFormatter::withUnixTimestampDates());
         $now = new DateTimeImmutable();
-        $token = $builder
+        $builder = $builder
             ->issuedAt($now)
             ->expiresAt($now->modify('+' . $this->ttl . ' seconds'))
             ->canOnlyBeUsedAfter($now)
             ->issuedBy($this->iss)
             ->permittedFor($this->aud)
             ->relatedTo($token->getUserIdentifier())
-            ->identifiedBy(bin2hex(random_bytes(16)))
-            ->getToken($signer, $key);
+            ->identifiedBy(bin2hex(random_bytes(16)));
+
+        foreach ($customClaims as $name => $value) {
+            $builder = $builder->withClaim($name, $value);
+        }
+
+        $token = $builder->getToken($signer, $key);
 
         return new AccessToken($token->toString(), $this->ttl);
     }

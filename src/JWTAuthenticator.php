@@ -15,7 +15,6 @@ use GaaraHyperf\JWT\Exception\JWTException;
 use GaaraHyperf\JWT\RefreshTokenManager\RefreshTokenManagerInterface;
 use GaaraHyperf\Passport\Passport;
 use GaaraHyperf\Token\TokenInterface;
-use GaaraHyperf\UserProvider\UserProviderInterface;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 
@@ -30,7 +29,6 @@ class JWTAuthenticator extends AbstractAuthenticator
      * @param string $refreshPath
      * @param AccessTokenManagerInterface $accessTokenManager
      * @param AccessTokenExtractorInterface $accessTokenExtractor
-     * @param UserProviderInterface $userProvider
      * @param bool $refreshTokenEnabled
      * @param RefreshTokenManagerInterface|null $refreshTokenManager
      * @param AccessTokenExtractorInterface|null $refreshTokenExtractor
@@ -41,7 +39,6 @@ class JWTAuthenticator extends AbstractAuthenticator
         private string $refreshPath,
         private AccessTokenManagerInterface $accessTokenManager,
         private AccessTokenExtractorInterface $accessTokenExtractor,
-        private UserProviderInterface $userProvider,
         private bool $refreshTokenEnabled = true,
         private ?RefreshTokenManagerInterface $refreshTokenManager = null,
         private ?AccessTokenExtractorInterface $refreshTokenExtractor = null,

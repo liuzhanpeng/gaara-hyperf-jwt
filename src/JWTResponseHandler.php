@@ -37,7 +37,10 @@ class JWTResponseHandler implements AuthenticationSuccessHandlerInterface
 
     public function handle(string $guardName, ServerRequestInterface $request, TokenInterface $token, Passport $passport): ?ResponseInterface
     {
-        $accessToken = $this->accessTokenManagerResolver->resolve($this->accessTokenManager)->issue($token);
+        $user = $passport->getUser();
+        $customClaims = $user instanceof JWTCustomClaimAwareUserInterface ? $user->getJWTCustomClaims() : [];
+
+        $accessToken = $this->accessTokenManagerResolver->resolve($this->accessTokenManager)->issue($token, $customClaims);
 
         if (!$this->refreshTokenEnabled) {
             return $this->response->json([

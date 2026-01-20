@@ -18,11 +18,12 @@ interface AccessTokenManagerInterface
 {
     /**
      * 发布
-     * 
+     *
      * @param TokenInterface $token
+     * @param array $customClaims
      * @return AccessToken
      */
-    public function issue(TokenInterface $token): AccessToken;
+    public function issue(TokenInterface $token, array $customClaims = []): AccessToken;
 
     /**
      * 解析, 失败时抛出异常
