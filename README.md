@@ -32,6 +32,7 @@ return [
                         'params' => [
                             'access_token_manager' => 'default', // 关联 services.jwt_access_token_managers 下的配置; 与认证器共享同一个 Access Token 管理器
                             'refresh_token_manager' => 'default', // 关联 services.jwt_refresh_token_managers 下的配置; 与认证器共享同一个 Refresh Token 管理器
+                            'refresh_token_enabled' => true, // 可选；是否启用 Refresh Token 机制，默认：true
                             // 'refresh_token_response_type' => 'body', // 响应类型; 可选值：body|cookie，默认：body
                             // 'response_template' => '{"access_token": "#ACCESS_TOKEN#", "expires_in": #EXPIRES_IN#, "refresh_token": "#REFRESH_TOKEN#"}', // refresh_token_response_type=='bodhy'时生效；可选，自定义响应模板，支持 #ACCESS_TOKEN#、#EXPIRES_IN#、#REFRESH_TOKEN# 占位符
                             // 'refresh_token_cookie_name' => 'refresh_token', // 可选; refresh_token 参数名，默认：refresh_token
@@ -49,8 +50,9 @@ return [
                     //     'field' => 'Authorization',
                     //     'scheme' => 'Bearer',
                     // ],
-                    'refresh_path' => '/user/refresh-token', // 必须; 刷新 Token 的请求路径
-                    'refresh_token_manager' => 'default', // 关联 services.jwt_refresh_token_managers 下的配置
+                    'refresh_token_enabled' => true, // 可选；是否启用 Refresh Token 机制，默认：true
+                    // 'refresh_path' => '/user/refresh-token', // refresh_token_enabled 为 true 时必须；刷新 Token 的请求路径
+                    // 'refresh_token_manager' => 'default', // refresh_token_enabled 为 true 时关联 services.jwt_refresh_token_managers 下的配置
                     // 'refresh_token_extractor' => [ // 可选，默认从请求体中提取 refresh_token
                     //     'type' => 'body', // 可选值：body|cookie
                     //     'field' => 'refresh_token', // refresh_token 参数名

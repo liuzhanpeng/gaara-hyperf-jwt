@@ -30,9 +30,10 @@ class JWTAuthenticator extends AbstractAuthenticator
      * @param string $refreshPath
      * @param AccessTokenManagerInterface $accessTokenManager
      * @param AccessTokenExtractorInterface $accessTokenExtractor
-     * @param RefreshTokenManagerInterface $refreshTokenManager
-     * @param AccessTokenExtractorInterface $refreshTokenExtractor
      * @param UserProviderInterface $userProvider
+     * @param bool $refreshTokenEnabled
+     * @param RefreshTokenManagerInterface|null $refreshTokenManager
+     * @param AccessTokenExtractorInterface|null $refreshTokenExtractor
      * @param AuthenticationSuccessHandlerInterface|null $successHandler
      * @param AuthenticationFailureHandlerInterface|null $failureHandler
      */
@@ -40,15 +41,16 @@ class JWTAuthenticator extends AbstractAuthenticator
         private string $refreshPath,
         private AccessTokenManagerInterface $accessTokenManager,
         private AccessTokenExtractorInterface $accessTokenExtractor,
-        private RefreshTokenManagerInterface $refreshTokenManager,
-        private AccessTokenExtractorInterface $refreshTokenExtractor,
         private UserProviderInterface $userProvider,
-        ?AuthenticationSuccessHandlerInterface $successHandler,
-        ?AuthenticationFailureHandlerInterface $failureHandler
+        private bool $refreshTokenEnabled = true,
+        private ?RefreshTokenManagerInterface $refreshTokenManager = null,
+        private ?AccessTokenExtractorInterface $refreshTokenExtractor = null,
+        ?AuthenticationSuccessHandlerInterface $successHandler = null,
+        ?AuthenticationFailureHandlerInterface $failureHandler = null
     ) {
         parent::__construct($successHandler, $failureHandler);
-        if (empty($this->refreshPath)) {
-            throw new \InvalidArgumentException('The "refresh_path" option is required.');
+        if ($this->refreshTokenEnabled && empty($this->refreshPath)) {
+            throw new \InvalidArgumentException('The "refresh_path" option is required when refresh_token_enabled is true.');
         }
     }
 
@@ -58,7 +60,7 @@ class JWTAuthenticator extends AbstractAuthenticator
     public function supports(ServerRequestInterface $request): bool
     {
         return $this->accessTokenExtractor->extract($request) !== null
-            || ($request->getMethod() === 'POST' && $request->getUri()->getPath() === $this->refreshPath);
+            || ($this->refreshTokenEnabled && $request->getMethod() === 'POST' && $request->getUri()->getPath() === $this->refreshPath);
     }
 
     /**
@@ -66,7 +68,7 @@ class JWTAuthenticator extends AbstractAuthenticator
      */
     public function authenticate(ServerRequestInterface $request): Passport
     {
-        if ($request->getUri()->getPath() === $this->refreshPath) {
+        if ($this->refreshTokenEnabled && $request->getUri()->getPath() === $this->refreshPath) {
             $refreshToken = $this->refreshTokenExtractor->extract($request);
             if ($refreshToken === null) {
                 throw new InvalidCredentialsException('No refresh token found in the request');
@@ -79,7 +81,7 @@ class JWTAuthenticator extends AbstractAuthenticator
 
             return new Passport(
                 $token->getUserIdentifier(),
-                $this->userProvider->findByIdentifier(...)
+                fn() => $token
             );
         }
 
@@ -90,9 +92,8 @@ class JWTAuthenticator extends AbstractAuthenticator
 
         try {
             $user = $this->accessTokenManager->parse($accessToken);
-            $userIdentifier = $user->getIdentifier();
             return new Passport(
-                $userIdentifier,
+                $user->getIdentifier(),
                 fn() => $user
             );
         } catch (\RuntimeException $e) {
@@ -110,8 +111,7 @@ class JWTAuthenticator extends AbstractAuthenticator
             return $this->successHandler->handle($guardName, $request, $token, $passport);
         }
 
-        if ($request->getUri()->getPath() === $this->refreshPath) {
-            // 撤消旧的刷新令牌
+        if ($this->refreshTokenEnabled && $request->getUri()->getPath() === $this->refreshPath) {
             $refreshToken = $this->refreshTokenExtractor->extract($request);
             $this->refreshTokenManager->revoke($refreshToken);
 
@@ -139,7 +139,7 @@ class JWTAuthenticator extends AbstractAuthenticator
             return $this->failureHandler->handle($guardName, $request, $exception, $passport);
         }
 
-        if ($request->getUri()->getPath() === $this->refreshPath) {
+        if ($this->refreshTokenEnabled && $request->getUri()->getPath() === $this->refreshPath) {
             $response = new \Hyperf\HttpMessage\Server\Response();
             return $response->withStatus(401)->withBody(new \Hyperf\HttpMessage\Stream\SwooleStream(json_encode([
                 'error' => $exception->getMessage(),

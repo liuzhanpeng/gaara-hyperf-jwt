@@ -32,11 +32,20 @@ class JWTResponseHandler implements AuthenticationSuccessHandlerInterface
         private ?string $refreshTokenCookieDomain = null,
         private ?bool $refreshTokenCookieSecure = null,
         private ?string $refreshTokenCookieSameSite = null,
+        private bool $refreshTokenEnabled = true,
     ) {}
 
     public function handle(string $guardName, ServerRequestInterface $request, TokenInterface $token, Passport $passport): ?ResponseInterface
     {
         $accessToken = $this->accessTokenManagerResolver->resolve($this->accessTokenManager)->issue($token);
+
+        if (!$this->refreshTokenEnabled) {
+            return $this->response->json([
+                'access_token' => $accessToken->token(),
+                'expires_in' => $accessToken->expiresIn(),
+            ]);
+        }
+
         $refreshToken = $this->refreshTokenManagerResolver->resolve($this->refreshTokenManager)->issue($token);
 
         if ($this->refreshTokenResponseType === 'cookie') {

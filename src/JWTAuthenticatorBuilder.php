@@ -34,32 +34,46 @@ class JWTAuthenticatorBuilder extends AbstractAuthenticatorBuilder
                 'type' => 'body',
                 'field' => 'refresh_token',
             ],
+            'refresh_token_enabled' => true,
         ], $options);
 
-        if (!isset($options['refresh_path'])) {
-            throw new \InvalidArgumentException('The "refresh_path" option is required.');
+        $refreshTokenEnabled = $options['refresh_token_enabled'];
+
+        if ($refreshTokenEnabled && !isset($options['refresh_path'])) {
+            throw new \InvalidArgumentException('The "refresh_path" option is required when refresh_token_enabled is true.');
         }
 
         $accessTokenManager = $this->container->get(AccessTokenManagerResolverInterface::class)->resolve($options['access_token_manager']);
-        $refreshTokenManager = $this->container->get(RefreshTokenManagerResolverInterface::class)->resolve($options['refresh_token_manager']);
-        $accessTokenExtractorFactory = $this->container->get(AccessTokenExtractorFactory::class);
-        $accessTokenExtractor = $accessTokenExtractorFactory->create($options['access_token_extractor']);
-        $refreshTokenExtractor = $accessTokenExtractorFactory->create($options['refresh_token_extractor']);
 
-        $eventDispatcher->addSubscriber(new JWTRevokeLogoutListener(
-            refreshTokenManager: $refreshTokenManager,
-            refreshTokenExtractor: $refreshTokenExtractor,
-        ));
+        $refreshTokenManager = null;
+        $refreshTokenExtractor = null;
+        if ($refreshTokenEnabled) {
+            $refreshTokenManager = $this->container->get(RefreshTokenManagerResolverInterface::class)->resolve($options['refresh_token_manager']);
+            $accessTokenExtractorFactory = $this->container->get(AccessTokenExtractorFactory::class);
+            $refreshTokenExtractor = $accessTokenExtractorFactory->create($options['refresh_token_extractor']);
+
+            $eventDispatcher->addSubscriber(new JWTRevokeLogoutListener(
+                refreshTokenManager: $refreshTokenManager,
+                refreshTokenExtractor: $refreshTokenExtractor,
+            ));
+        }
 
         return new JWTAuthenticator(
-            refreshPath: $options['refresh_path'],
+            refreshPath: $options['refresh_path'] ?? '',
             accessTokenManager: $accessTokenManager,
-            accessTokenExtractor: $accessTokenExtractor,
+            accessTokenExtractor: $this->createAccessTokenExtractor($options),
+            userProvider: $userProvider,
+            refreshTokenEnabled: $refreshTokenEnabled,
             refreshTokenManager: $refreshTokenManager,
             refreshTokenExtractor: $refreshTokenExtractor,
-            userProvider: $userProvider,
             successHandler: $this->createSuccessHandler($options),
             failureHandler: $this->createFailureHandler($options),
         );
+    }
+
+    private function createAccessTokenExtractor(array $options): \GaaraHyperf\AccessTokenExtractor\AccessTokenExtractorInterface
+    {
+        $accessTokenExtractorFactory = $this->container->get(\GaaraHyperf\AccessTokenExtractor\AccessTokenExtractorFactory::class);
+        return $accessTokenExtractorFactory->create($options['access_token_extractor']);
     }
 }
