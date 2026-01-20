@@ -87,3 +87,25 @@ return [
     ]
 ];
 ```
+
+### Custom Claims
+
+如果 User 实现了 `GaaraHyperf\JWT\JWTCustomClaimAwareUserInterface` 接口，则可以通过 `getJWTCustomClaims` 方法返回一个关联数组，作为 JWT 的自定义声明添加到 Access Token 中。例如：
+
+```php
+use GaaraHyperf\JWT\JWTCustomClaimAwareUserInterface;
+use GaaraHyperf\User\UserInterface;
+
+class User implements UserInterface, JWTCustomClaimAwareUserInterface
+{
+    // 其他 User 方法实现...
+
+    public function getJWTCustomClaims(): array
+    {
+        return [
+            'role' => 'admin',
+            'department' => 'sales',
+        ];
+    }
+}
+```
