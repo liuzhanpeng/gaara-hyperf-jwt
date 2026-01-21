@@ -25,13 +25,14 @@ class JWTResponseHandler implements AuthenticationSuccessHandlerInterface
         private \Hyperf\HttpServer\Contract\ResponseInterface $response,
         private string $accessTokenManager = 'default',
         private string $refreshTokenManager = 'default',
-        private ?string $refreshTokenResponseType = null,
+        private string $refreshTokenResponseType = 'body',
         private ?string $responseTemplate = null,
         private string $refreshTokenCookieName = 'refresh_token',
-        private ?string $refreshTokenCookiePath = null,
-        private ?string $refreshTokenCookieDomain = null,
-        private ?bool $refreshTokenCookieSecure = null,
-        private ?string $refreshTokenCookieSameSite = null,
+        private string $refreshTokenCookiePath = '/',
+        private string $refreshTokenCookieDomain = '',
+        private bool $refreshTokenCookieSecure = true,
+        private bool $refreshTokenCookieHttpOnly = true,
+        private string $refreshTokenCookieSameSite = 'lax',
         private bool $refreshTokenEnabled = true,
     ) {}
 
@@ -43,10 +44,7 @@ class JWTResponseHandler implements AuthenticationSuccessHandlerInterface
         $accessToken = $this->accessTokenManagerResolver->resolve($this->accessTokenManager)->issue($token, $customClaims);
 
         if (!$this->refreshTokenEnabled) {
-            return $this->response->json([
-                'access_token' => $accessToken->token(),
-                'expires_in' => $accessToken->expiresIn(),
-            ]);
+            return $this->response->json(json_decode($this->getResponseTemplate($accessToken), true));
         }
 
         $refreshToken = $this->refreshTokenManagerResolver->resolve($this->refreshTokenManager)->issue($token);
@@ -56,28 +54,44 @@ class JWTResponseHandler implements AuthenticationSuccessHandlerInterface
                 name: $this->refreshTokenCookieName,
                 value: $refreshToken->token(),
                 expire: time() + $refreshToken->expiresIn(),
-                path: $this->refreshTokenCookiePath ?? '/',
+                path: $this->refreshTokenCookiePath,
                 domain: $this->refreshTokenCookieDomain,
-                secure: $this->refreshTokenCookieSecure ?? true,
-                sameSite: $this->refreshTokenCookieSameSite ?? 'lax',
+                secure: $this->refreshTokenCookieSecure,
+                httpOnly: $this->refreshTokenCookieHttpOnly,
+                sameSite: $this->refreshTokenCookieSameSite,
             );
 
-            return $this->response->withCookie($cookie)->json([
-                'access_token' => $accessToken->token(),
-                'expires_in' => $accessToken->expiresIn(),
-            ]);
+            return $this->response->withCookie($cookie)->json(json_decode($this->getResponseTemplate($accessToken), true));
         }
 
-        $template = str_replace(
-            ['#ACCESS_TOKEN#', '#EXPIRES_IN#', "#REFRESH_TOKEN#"],
-            [$accessToken->token(), $accessToken->expiresIn(), $refreshToken->token()],
-            $this->responseTemplate ?? '{"access_token": "#ACCESS_TOKEN#", "expires_in": #EXPIRES_IN#, "refresh_token": "#REFRESH_TOKEN#"}'
-        );
+        return $this->response->json(json_decode($this->getResponseTemplate($accessToken, $refreshToken), true));
+    }
+
+    /**
+     * @param AccessToken $accessToken
+     * @param RefreshToken|null $refreshToken
+     * @return string
+     */
+    private function getResponseTemplate(AccessToken $accessToken, ?RefreshToken $refreshToken = null): string
+    {
+        if ($refreshToken !== null) {
+            $template = str_replace(
+                ['#ACCESS_TOKEN#', '#EXPIRES_IN#', "#REFRESH_TOKEN#"],
+                [$accessToken->token(), $accessToken->expiresIn(), $refreshToken->token()],
+                $this->responseTemplate ?? '{"access_token": "#ACCESS_TOKEN#", "expires_in": #EXPIRES_IN#, "refresh_token": "#REFRESH_TOKEN#"}'
+            );
+        } else {
+            $template = str_replace(
+                ['#ACCESS_TOKEN#', '#EXPIRES_IN#'],
+                [$accessToken->token(), $accessToken->expiresIn()],
+                $this->responseTemplate ?? '{"access_token": "#ACCESS_TOKEN#", "expires_in": #EXPIRES_IN#}'
+            );
+        }
 
         if (!is_string($template) || !is_array(json_decode($template, true))) {
             throw new \InvalidArgumentException('Response template must be a valid JSON string');
         }
 
-        return $this->response->json(json_decode($template, true));
+        return $template;
     }
 }

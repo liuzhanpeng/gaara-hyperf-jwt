@@ -39,6 +39,7 @@ return [
                             // 'refresh_token_cookie_path' => '/', // refresh_token_response_type=='cookie' 时生效，Cookie 路径，默认：/
                             // 'refresh_token_cookie_domain' => null, // refresh_token_response_type=='cookie' 时生效，Cookie 域名，默认：null
                             // 'refresh_token_cookie_secure' => true, // refresh_token_response_type=='cookie' 时生效，Cookie 是否仅通过 HTTPS 传输，默认：true
+                            // 'refresh_token_cookie_http_only' => true, // refresh_token_response_type=='cookie' 时生效，Cookie 是否为 HttpOnly，默认：true
                             // 'refresh_token_cookie_samesite' => 'lax', // refresh_token_response_type=='cookie' 时生效，Cookie SameSite 属性，默认：lax, 可选值：lax|strict
                         ],
                     ],
