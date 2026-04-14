@@ -7,9 +7,7 @@ namespace GaaraHyperf\JWT;
 use GaaraHyperf\User\UserInterface;
 
 /**
- * JWT认证用户
- * 
- * @author lzpeng <liuzhanpeng@gmail.com>
+ * JWT认证用户.
  */
 class JWTUser implements UserInterface
 {
@@ -20,20 +18,16 @@ class JWTUser implements UserInterface
     public function __construct(
         private string $identifier,
         private array $attributes
-    ) {}
+    ) {
+    }
 
-    /**
-     * @inheritDoc
-     */
     public function getIdentifier(): string
     {
         return $this->identifier;
     }
 
     /**
-     * 返回用户属性集合
-     *
-     * @return array
+     * 返回用户属性集合.
      */
     public function getAttributes(): array
     {

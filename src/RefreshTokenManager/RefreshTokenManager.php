@@ -6,22 +6,14 @@ namespace GaaraHyperf\JWT\RefreshTokenManager;
 
 use GaaraHyperf\JWT\RefreshToken;
 use GaaraHyperf\Token\TokenInterface;
+use InvalidArgumentException;
 use Psr\SimpleCache\CacheInterface;
 
 /**
- * 内置的Refresh Token 管理器
- * 
- * @author lzpeng <liuzhanpeng@gmail.com>
+ * 内置的Refresh Token 管理器.
  */
 class RefreshTokenManager implements RefreshTokenManagerInterface
 {
-    /**
-     * @param CacheInterface $cache
-     * @param string $prefix
-     * @param integer $ttl
-     * @param bool $singleSession
-     * @param integer $refreshTokenLength
-     */
     public function __construct(
         private CacheInterface $cache,
         private string $prefix,
@@ -29,21 +21,18 @@ class RefreshTokenManager implements RefreshTokenManagerInterface
         private bool $singleSession,
         private int $refreshTokenLength,
     ) {
-        if ($refreshTokenLength < 16 || $refreshTokenLength % 2 !== 0) {
-            throw new \InvalidArgumentException('The refresh token length must be an even number and not less than 16.');
+        if ($refreshTokenLength < 32) {
+            throw new InvalidArgumentException('The refresh token length must be at least 32 characters.');
         }
     }
 
-    /**
-     * @inheritDoc
-     */
     public function issue(TokenInterface $token): RefreshToken
     {
         $refreshToken = bin2hex(random_bytes($this->refreshTokenLength / 2));
 
         if ($this->singleSession) {
             $preRefreshToken = $this->cache->get($this->getUserCacheKey($token->getUserIdentifier()));
-            if (!is_null($preRefreshToken)) {
+            if (! is_null($preRefreshToken)) {
                 $this->cache->delete($this->getRefreshTokenCacheKey($preRefreshToken));
             }
 
@@ -55,9 +44,6 @@ class RefreshTokenManager implements RefreshTokenManagerInterface
         return new RefreshToken($refreshToken, $this->ttl);
     }
 
-    /**
-     * @inheritDoc
-     */
     public function resolve(string $refreshToken): ?TokenInterface
     {
         $cacheKey = $this->getRefreshTokenCacheKey($refreshToken);
@@ -69,14 +55,11 @@ class RefreshTokenManager implements RefreshTokenManagerInterface
         return $token;
     }
 
-    /**
-     * @inheritDoc
-     */
     public function revoke(string $refreshToken): void
     {
         if ($this->singleSession) {
             $token = $this->resolve($refreshToken);
-            if (!is_null($token)) {
+            if (! is_null($token)) {
                 $this->cache->delete($this->getUserCacheKey($token->getUserIdentifier()));
             }
         }
@@ -85,10 +68,7 @@ class RefreshTokenManager implements RefreshTokenManagerInterface
     }
 
     /**
-     * 返回缓存key
-     *
-     * @param string $refreshToken
-     * @return string
+     * 返回缓存key.
      */
     private function getRefreshTokenCacheKey(string $refreshToken): string
     {
@@ -96,10 +76,7 @@ class RefreshTokenManager implements RefreshTokenManagerInterface
     }
 
     /**
-     * 返回用户Token键
-     *
-     * @param string $identifier
-     * @return string
+     * 返回用户Token键.
      */
     private function getUserCacheKey(string $identifier): string
     {

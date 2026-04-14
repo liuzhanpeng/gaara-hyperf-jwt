@@ -7,15 +7,15 @@ namespace GaaraHyperf\JWT;
 use GaaraHyperf\Authenticator\AuthenticationSuccessHandlerInterface;
 use GaaraHyperf\JWT\AccessTokenManager\AccessTokenManagerResolverInterface;
 use GaaraHyperf\JWT\RefreshTokenManager\RefreshTokenManagerResolverInterface;
-use Psr\Http\Message\ServerRequestInterface;
-use GaaraHyperf\Token\TokenInterface;
 use GaaraHyperf\Passport\Passport;
+use GaaraHyperf\Token\TokenInterface;
+use Hyperf\HttpMessage\Cookie\Cookie;
+use InvalidArgumentException;
 use Psr\Http\Message\ResponseInterface;
+use Psr\Http\Message\ServerRequestInterface;
 
 /**
- * JWT响应处理器
- * 
- * @author lzpeng <liuzhanpeng@gmail.com>
+ * JWT响应处理器.
  */
 class JWTResponseHandler implements AuthenticationSuccessHandlerInterface
 {
@@ -34,7 +34,8 @@ class JWTResponseHandler implements AuthenticationSuccessHandlerInterface
         private bool $refreshTokenCookieHttpOnly = true,
         private string $refreshTokenCookieSameSite = 'lax',
         private bool $refreshTokenEnabled = true,
-    ) {}
+    ) {
+    }
 
     public function handle(string $guardName, ServerRequestInterface $request, TokenInterface $token, Passport $passport): ?ResponseInterface
     {
@@ -43,14 +44,14 @@ class JWTResponseHandler implements AuthenticationSuccessHandlerInterface
 
         $accessToken = $this->accessTokenManagerResolver->resolve($this->accessTokenManager)->issue($token, $customClaims);
 
-        if (!$this->refreshTokenEnabled) {
+        if (! $this->refreshTokenEnabled) {
             return $this->response->json(json_decode($this->getResponseTemplate($accessToken), true));
         }
 
         $refreshToken = $this->refreshTokenManagerResolver->resolve($this->refreshTokenManager)->issue($token);
 
         if ($this->refreshTokenResponseType === 'cookie') {
-            $cookie = new \Hyperf\HttpMessage\Cookie\Cookie(
+            $cookie = new Cookie(
                 name: $this->refreshTokenCookieName,
                 value: $refreshToken->token(),
                 expire: time() + $refreshToken->expiresIn(),
@@ -67,16 +68,11 @@ class JWTResponseHandler implements AuthenticationSuccessHandlerInterface
         return $this->response->json(json_decode($this->getResponseTemplate($accessToken, $refreshToken), true));
     }
 
-    /**
-     * @param AccessToken $accessToken
-     * @param RefreshToken|null $refreshToken
-     * @return string
-     */
     private function getResponseTemplate(AccessToken $accessToken, ?RefreshToken $refreshToken = null): string
     {
         if ($refreshToken !== null) {
             $template = str_replace(
-                ['#ACCESS_TOKEN#', '#EXPIRES_IN#', "#REFRESH_TOKEN#"],
+                ['#ACCESS_TOKEN#', '#EXPIRES_IN#', '#REFRESH_TOKEN#'],
                 [$accessToken->token(), $accessToken->expiresIn(), $refreshToken->token()],
                 $this->responseTemplate ?? '{"access_token": "#ACCESS_TOKEN#", "expires_in": #EXPIRES_IN#, "refresh_token": "#REFRESH_TOKEN#"}'
             );
@@ -88,8 +84,8 @@ class JWTResponseHandler implements AuthenticationSuccessHandlerInterface
             );
         }
 
-        if (!is_string($template) || !is_array(json_decode($template, true))) {
-            throw new \InvalidArgumentException('Response template must be a valid JSON string');
+        if (! is_string($template) || ! is_array(json_decode($template, true))) {
+            throw new InvalidArgumentException('Response template must be a valid JSON string');
         }
 
         return $template;

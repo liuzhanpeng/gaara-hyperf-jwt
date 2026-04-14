@@ -4,39 +4,30 @@ declare(strict_types=1);
 
 namespace GaaraHyperf\JWT\RefreshTokenManager;
 
-use Psr\Container\ContainerInterface;
+use InvalidArgumentException;
 
 /**
- * Refresh Token 管理器解析器
- * 
- * @author lzpeng <liuzhanpeng@gmail.com>
+ * Refresh Token 管理器解析器.
  */
 class RefreshTokenManagerResolver implements RefreshTokenManagerResolverInterface
 {
-    /**
-     * @param array $refreshTokenManagerMap
-     * @param ContainerInterface $container
-     */
-    public function __construct(
-        private array $refreshTokenManagerMap,
-        private ContainerInterface $container,
-    ) {}
+    private array $refreshTokenManagers = [];
 
-    /**
-     * @inheritDoc
-     */
+    public function __construct(
+        private array $factories,
+    ) {
+    }
+
     public function resolve(string $name = 'default'): RefreshTokenManagerInterface
     {
-        if (!isset($this->refreshTokenManagerMap[$name])) {
-            throw new \InvalidArgumentException("Refresh Token Manager does not exist: $name");
+        if (! isset($this->refreshTokenManagers[$name])) {
+            if (! isset($this->factories[$name])) {
+                throw new InvalidArgumentException(sprintf('RefreshToken Manager "%s" is not defined', $name));
+            }
+
+            $this->refreshTokenManagers[$name] = ($this->factories[$name])();
         }
 
-        $refreshTokenManagerId = $this->refreshTokenManagerMap[$name];
-        $refreshTokenManager = $this->container->get($refreshTokenManagerId);
-        if (!$refreshTokenManager instanceof RefreshTokenManagerInterface) {
-            throw new \LogicException(sprintf('Refresh Token Manager "%s" must implement %s interface', $refreshTokenManagerId, RefreshTokenManagerInterface::class));
-        }
-
-        return $refreshTokenManager;
+        return $this->refreshTokenManagers[$name];
     }
 }

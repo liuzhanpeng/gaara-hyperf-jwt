@@ -10,16 +10,15 @@ use GaaraHyperf\JWT\RefreshTokenManager\RefreshTokenManagerInterface;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 
 /**
- * JWT撤消登出监听器
- * 
- * @author lzpeng <liuzhanpeng@gmail.com>
+ * JWT撤消登出监听器.
  */
 class JWTRevokeLogoutListener implements EventSubscriberInterface
 {
     public function __construct(
         private RefreshTokenManagerInterface $refreshTokenManager,
         private AccessTokenExtractorInterface $refreshTokenExtractor,
-    ) {}
+    ) {
+    }
 
     public static function getSubscribedEvents()
     {

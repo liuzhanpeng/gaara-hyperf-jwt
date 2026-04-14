@@ -8,7 +8,7 @@ use Psr\SimpleCache\CacheInterface;
 
 describe('RefreshTokenManager', function () {
     $createToken = function (string $userIdentifier = 'user-1'): TokenInterface {
-        $token = \Mockery::mock(TokenInterface::class);
+        $token = Mockery::mock(TokenInterface::class);
         $token->shouldReceive('getGuardName')->andReturn('guard');
         $token->shouldReceive('getUserIdentifier')->andReturn($userIdentifier);
 
@@ -17,7 +17,7 @@ describe('RefreshTokenManager', function () {
 
     it('issues and resolves refresh tokens', function () use ($createToken) {
         $stored = [];
-        $cache = \Mockery::mock(CacheInterface::class);
+        $cache = Mockery::mock(CacheInterface::class);
         $cache->shouldReceive('set')->andReturnUsing(function ($key, $value) use (&$stored) {
             $stored[$key] = $value;
             return true;
@@ -38,7 +38,7 @@ describe('RefreshTokenManager', function () {
 
     it('enforces single-session by replacing previous tokens', function () use ($createToken) {
         $stored = [];
-        $cache = \Mockery::mock(CacheInterface::class);
+        $cache = Mockery::mock(CacheInterface::class);
         $cache->shouldReceive('set')->andReturnUsing(function ($key, $value) use (&$stored) {
             $stored[$key] = $value;
             return true;
@@ -64,7 +64,7 @@ describe('RefreshTokenManager', function () {
 
     it('revokes refresh tokens and clears user mapping when single-session', function () use ($createToken) {
         $stored = [];
-        $cache = \Mockery::mock(CacheInterface::class);
+        $cache = Mockery::mock(CacheInterface::class);
         $cache->shouldReceive('set')->andReturnUsing(function ($key, $value) use (&$stored) {
             $stored[$key] = $value;
             return true;
@@ -88,7 +88,7 @@ describe('RefreshTokenManager', function () {
     });
 
     it('validates refresh token length requirement', function () {
-        $cache = \Mockery::mock(CacheInterface::class);
+        $cache = Mockery::mock(CacheInterface::class);
         new RefreshTokenManager($cache, 'rt', 600, false, 15);
-    })->throws(\InvalidArgumentException::class, 'even number and not less than 16');
+    })->throws(InvalidArgumentException::class, 'even number and not less than 16');
 });

@@ -5,25 +5,18 @@ declare(strict_types=1);
 namespace GaaraHyperf\JWT;
 
 /**
- * 刷新令牌
- * 
- * @author lzpeng <liuzhanpeng@gmail.com>
+ * 刷新令牌.
  */
 class RefreshToken
 {
-    /**
-     * @param string $token
-     * @param integer $expiresIn
-     */
     public function __construct(
         private string $token,
         private int $expiresIn,
-    ) {}
+    ) {
+    }
 
     /**
-     * 返回Token字符串
-     * 
-     * @return string
+     * 返回Token字符串.
      */
     public function token(): string
     {
@@ -31,9 +24,7 @@ class RefreshToken
     }
 
     /**
-     * 返回过期时间，单位：秒
-     *
-     * @return integer
+     * 返回过期时间，单位：秒.
      */
     public function expiresIn(): int
     {

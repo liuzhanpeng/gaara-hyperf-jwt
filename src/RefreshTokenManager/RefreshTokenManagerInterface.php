@@ -8,33 +8,22 @@ use GaaraHyperf\JWT\RefreshToken;
 use GaaraHyperf\Token\TokenInterface;
 
 /**
- * Refresh Token 管理器接口
- * 
- * @author lzpeng <liuzhanpeng@gmail.com>
+ * Refresh Token 管理器接口.
  */
 interface RefreshTokenManagerInterface
 {
     /**
-     * 发布
-     *
-     * @param TokenInterface $token
-     * @return RefreshToken
+     * 发布.
      */
     public function issue(TokenInterface $token): RefreshToken;
 
     /**
-     * 解析
-     *
-     * @param string $refreshToken
-     * @return TokenInterface|null
+     * 解析.
      */
     public function resolve(string $refreshToken): ?TokenInterface;
 
     /**
-     * 撤消
-     *
-     * @param string $refreshToken
-     * @return void
+     * 撤消.
      */
     public function revoke(string $refreshToken): void;
 }

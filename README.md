@@ -1,18 +1,18 @@
-# Gaara Hyperf JWT Authentication 
+# Gaara Hyperf JWT Authentication 使用文档
 
 基于Gaara Hyperf认证框架的JWT认证扩展包，支持Refresh Token机制。
 
-## Installation
+## 安装
 
 ```bash
 composer require lzpeng/gaara-hyperf-jwt
 ```
 
-## Usage
+## 快速开始
 
 通过配置就可以使用 JWT 认证器进行用户认证。
 
-### Configuration Example
+### 配置
 
 ```php
 return [
