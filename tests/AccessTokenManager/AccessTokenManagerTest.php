@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use GaaraHyperf\JWT\AccessTokenManager\AccessTokenManager;
+use GaaraHyperf\JWT\Exception\InvalidAccessTokenException;
 use GaaraHyperf\Token\TokenInterface;
 
 function generateEcKeyPair(): array
@@ -64,7 +65,7 @@ describe('AccessTokenManager', function () {
         $manager = new AccessTokenManager('HS256', $secret, null, '', 600, null, 'issuer', 'audience');
 
         $manager->parse('not-a-jwt');
-    })->throws(RuntimeException::class, 'Failed to parse access token');
+    })->throws(InvalidAccessTokenException::class, 'Failed to parse access token');
 
     it('rejects expired tokens', function () use ($secret, $createToken) {
         $manager = new AccessTokenManager('HS256', $secret, null, '', -10, null, 'issuer', 'audience');
@@ -73,7 +74,7 @@ describe('AccessTokenManager', function () {
         $accessToken = $manager->issue($token);
 
         $manager->parse($accessToken->token());
-    })->throws(RuntimeException::class, 'Access token is expired or not yet valid');
+    })->throws(InvalidAccessTokenException::class, 'Access token is expired or not yet valid');
 
     it('rejects tokens with invalid signature', function () use ($secret, $createToken) {
         $issuer = 'issuer';
@@ -85,7 +86,7 @@ describe('AccessTokenManager', function () {
 
         $parserManager = new AccessTokenManager('HS256', str_repeat('b', 64), null, '', 600, null, $issuer, $audience);
         $parserManager->parse($accessToken->token());
-    })->throws(RuntimeException::class, 'Invalid access token signature');
+    })->throws(InvalidAccessTokenException::class, 'Invalid access token signature');
 
     it('rejects tokens with wrong issuer', function () use ($secret, $createToken) {
         $token = $createToken();
@@ -95,7 +96,7 @@ describe('AccessTokenManager', function () {
 
         $parserManager = new AccessTokenManager('HS256', $secret, null, '', 600, null, 'issuer-b', 'audience');
         $parserManager->parse($accessToken->token());
-    })->throws(RuntimeException::class, 'Invalid access token issuer');
+    })->throws(InvalidAccessTokenException::class, 'Invalid access token issuer');
 
     it('rejects tokens with wrong audience', function () use ($secret, $createToken) {
         $token = $createToken();
@@ -105,7 +106,7 @@ describe('AccessTokenManager', function () {
 
         $parserManager = new AccessTokenManager('HS256', $secret, null, '', 600, null, 'issuer', 'audience-b');
         $parserManager->parse($accessToken->token());
-    })->throws(RuntimeException::class, 'Access token not permitted for this audience');
+    })->throws(InvalidAccessTokenException::class, 'Access token not permitted for this audience');
 
     it('issues and parses ES256 tokens with asymmetric keys', function () use ($esPrivateKey, $esPublicKey, $createToken) {
         $manager = new AccessTokenManager('ES256', $esPrivateKey, $esPublicKey, '', 600, null, 'issuer', 'audience');

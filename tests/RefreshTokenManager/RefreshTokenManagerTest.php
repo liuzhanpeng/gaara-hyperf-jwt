@@ -90,5 +90,5 @@ describe('RefreshTokenManager', function () {
     it('validates refresh token length requirement', function () {
         $cache = Mockery::mock(CacheInterface::class);
         new RefreshTokenManager($cache, 'rt', 600, false, 15);
-    })->throws(InvalidArgumentException::class, 'even number and not less than 16');
+    })->throws(InvalidArgumentException::class, 'at least 32 characters');
 });
