@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace GaaraHyperf\JWT\RefreshTokenManager;
+namespace GaaraHyperf\JWT\RefreshTokenIssuer;
 
 use GaaraHyperf\JWT\RefreshToken;
 use GaaraHyperf\Token\TokenInterface;
@@ -10,9 +10,9 @@ use InvalidArgumentException;
 use Psr\SimpleCache\CacheInterface;
 
 /**
- * 内置的Refresh Token 管理器.
+ * 内置的Refresh Token 发行器.
  */
-class RefreshTokenManager implements RefreshTokenManagerInterface
+class RefreshTokenIssuer implements RefreshTokenIssuerInterface
 {
     public function __construct(
         private CacheInterface $cache,

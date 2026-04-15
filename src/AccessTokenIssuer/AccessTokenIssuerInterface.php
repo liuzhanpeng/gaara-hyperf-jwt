@@ -2,16 +2,16 @@
 
 declare(strict_types=1);
 
-namespace GaaraHyperf\JWT\AccessTokenManager;
+namespace GaaraHyperf\JWT\AccessTokenIssuer;
 
 use GaaraHyperf\JWT\AccessToken;
 use GaaraHyperf\JWT\JWTUser;
 use GaaraHyperf\Token\TokenInterface;
 
 /**
- * AccessToken管理器接口.
+ * AccessToken发行器接口.
  */
-interface AccessTokenManagerInterface
+interface AccessTokenIssuerInterface
 {
     /**
      * 发布.

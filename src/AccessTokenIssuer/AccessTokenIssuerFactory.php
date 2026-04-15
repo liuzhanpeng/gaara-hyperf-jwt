@@ -2,30 +2,30 @@
 
 declare(strict_types=1);
 
-namespace GaaraHyperf\JWT\AccessTokenManager;
+namespace GaaraHyperf\JWT\AccessTokenIssuer;
 
 use GaaraHyperf\Config\CustomConfig;
 use Hyperf\Contract\ContainerInterface;
 use InvalidArgumentException;
 
 /**
- * AccessToken管理创建工厂
+ * AccessToken发行器创建工厂
  */
-class AccessTokenManagerFactory
+class AccessTokenIssuerFactory
 {
     public function __construct(
         private ContainerInterface $container,
     ) {
     }
 
-    public function create(array $config): AccessTokenManagerInterface
+    public function create(array $config): AccessTokenIssuerInterface
     {
         $type = $config['type'] ?? 'default';
         unset($config['type']);
 
         switch ($type) {
             case 'default':
-                return $this->container->make(AccessTokenManager::class, [
+                return $this->container->make(AccessTokenIssuer::class, [
                     'algo' => $config['algo'] ?? 'HS512',
                     'secretKey' => $config['secret_key'] ?? '',
                     'publicKey' => $config['public_key'] ?? null,
@@ -38,14 +38,14 @@ class AccessTokenManagerFactory
             case 'custom':
                 $customConfig = CustomConfig::from($config);
 
-                $accessTokenManager = $this->container->make($customConfig->class(), $customConfig->params());
-                if (! $accessTokenManager instanceof AccessTokenManagerInterface) {
-                    throw new InvalidArgumentException(sprintf('The custom AccessTokenManager must implement %s.', AccessTokenManagerInterface::class));
+                $accessTokenIssuer = $this->container->make($customConfig->class(), $customConfig->params());
+                if (! $accessTokenIssuer instanceof AccessTokenIssuerInterface) {
+                    throw new InvalidArgumentException(sprintf('The custom AccessTokenIssuer must implement %s.', AccessTokenIssuerInterface::class));
                 }
 
-                return $accessTokenManager;
+                return $accessTokenIssuer;
             default:
-                throw new InvalidArgumentException(sprintf('Unsupported access token manager type: %s', $type));
+                throw new InvalidArgumentException(sprintf('Unsupported access token issuer type: %s', $type));
         }
     }
 }

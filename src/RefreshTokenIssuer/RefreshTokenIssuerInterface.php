@@ -2,15 +2,15 @@
 
 declare(strict_types=1);
 
-namespace GaaraHyperf\JWT\RefreshTokenManager;
+namespace GaaraHyperf\JWT\RefreshTokenIssuer;
 
 use GaaraHyperf\JWT\RefreshToken;
 use GaaraHyperf\Token\TokenInterface;
 
 /**
- * Refresh Token 管理器接口.
+ * Refresh Token 发行器接口.
  */
-interface RefreshTokenManagerInterface
+interface RefreshTokenIssuerInterface
 {
     /**
      * 发布.

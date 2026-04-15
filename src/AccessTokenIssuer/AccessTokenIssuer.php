@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace GaaraHyperf\JWT\AccessTokenManager;
+namespace GaaraHyperf\JWT\AccessTokenIssuer;
 
 use DateTimeImmutable;
 use GaaraHyperf\JWT\AccessToken;
@@ -28,11 +28,11 @@ use Lcobucci\JWT\Validation\Validator;
 use Throwable;
 
 /**
- * 内置的AccessToken管理器.
+ * 内置的AccessToken发行器.
  *
  * 依赖于lcobucci/jwt
  */
-class AccessTokenManager implements AccessTokenManagerInterface
+class AccessTokenIssuer implements AccessTokenIssuerInterface
 {
     /**
      * @param string $algo 签名算法
