@@ -30,12 +30,6 @@
             "config": "GaaraHyperf\\JWT\\ConfigProvider"
         }
     },
-    "repositories": [
-        {
-            "type": "path",
-            "url": "/Users/peng/Works/gaara-hyperf"
-        }
-    ],
     "config": {
         "allow-plugins": {
             "pestphp/pest-plugin": true
