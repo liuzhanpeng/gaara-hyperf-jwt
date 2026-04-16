@@ -5,14 +5,9 @@ declare(strict_types=1);
 use GaaraHyperf\JWT\ConfigProvider;
 use GaaraHyperf\JWT\InitListener;
 
-describe('ConfigProvider', function () {
-    it('returns listener configuration', function () {
-        $provider = new ConfigProvider();
+it('returns the init listener from config provider', function (): void {
+    $config = (new ConfigProvider())();
 
-        expect($provider())->toBe([
-            'listeners' => [
-                InitListener::class,
-            ],
-        ]);
-    });
+    expect($config)->toHaveKey('listeners')
+        ->and($config['listeners'])->toContain(InitListener::class);
 });

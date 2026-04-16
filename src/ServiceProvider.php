@@ -51,7 +51,7 @@ class ServiceProvider implements ServiceProviderInterface
         $refreshTokenIssuerFactories = [];
         $jwtManagerFactories = [];
         foreach ($configGroup as $name => $config) {
-            $accessTokenIssuerFactories[$name] = fn () => fn () => $container->get(AccessTokenIssuerFactory::class)->create($config);
+            $accessTokenIssuerFactories[$name] = fn () => $container->get(AccessTokenIssuerFactory::class)->create($config);
             $refreshTokenIssuerFactories[$name] = fn () => $container->get(RefreshTokenIssuerFactory::class)->create($config);
 
             $accessTokenExtractor = $container->get(AccessTokenExtractorFactory::class)->create(

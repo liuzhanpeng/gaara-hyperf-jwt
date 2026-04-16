@@ -2,57 +2,31 @@
 
 declare(strict_types=1);
 
-use GaaraHyperf\AccessTokenExtractor\AccessTokenExtractorInterface;
 use GaaraHyperf\Event\LogoutEvent;
 use GaaraHyperf\JWT\EventListener\JWTRevokeLogoutListener;
-use GaaraHyperf\JWT\RefreshTokenManager\RefreshTokenManagerInterface;
+use GaaraHyperf\JWT\JWTokenManager\JWTokenManagerInterface;
 
-describe('JWTRevokeLogoutListener', function () {
-    it('subscribes to logout event', function () {
-        expect(JWTRevokeLogoutListener::getSubscribedEvents())->toBe([
-            LogoutEvent::class => 'onLogout',
-        ]);
-    });
+it('subscribes to the logout event', function (): void {
+    expect(JWTRevokeLogoutListener::getSubscribedEvents())
+        ->toBe([LogoutEvent::class => 'onLogout']);
+});
 
-    it('revokes refresh token on post logout request', function () {
-        $request = makeRequest('POST', '/logout');
-        $event = new LogoutEvent(makeTokenMock(), $request);
+it('revokes refresh tokens for post logout requests', function (): void {
+    $request = makeRequest('POST', '/logout');
+    $event = new LogoutEvent(makeTokenMock(), $request);
+    $jwtManager = Mockery::mock(JWTokenManagerInterface::class);
 
-        $refreshExtractor = Mockery::mock(AccessTokenExtractorInterface::class);
-        $refreshExtractor->shouldReceive('extract')->once()->with($request)->andReturn('refresh-token');
+    $jwtManager->shouldReceive('revokeRefreshToken')->once()->with($request);
 
-        $refreshManager = Mockery::mock(RefreshTokenManagerInterface::class);
-        $refreshManager->shouldReceive('revoke')->once()->with('refresh-token');
+    (new JWTRevokeLogoutListener($jwtManager))->onLogout($event);
+});
 
-        $listener = new JWTRevokeLogoutListener($refreshManager, $refreshExtractor);
-        $listener->onLogout($event);
-    });
+it('ignores non-post logout requests', function (): void {
+    $request = makeRequest('GET', '/logout');
+    $event = new LogoutEvent(makeTokenMock(), $request);
+    $jwtManager = Mockery::mock(JWTokenManagerInterface::class);
 
-    it('does nothing for non-post request', function () {
-        $request = makeRequest('GET', '/logout');
-        $event = new LogoutEvent(makeTokenMock(), $request);
+    $jwtManager->shouldReceive('revokeRefreshToken')->never();
 
-        $refreshExtractor = Mockery::mock(AccessTokenExtractorInterface::class);
-        $refreshExtractor->shouldReceive('extract')->never();
-
-        $refreshManager = Mockery::mock(RefreshTokenManagerInterface::class);
-        $refreshManager->shouldReceive('revoke')->never();
-
-        $listener = new JWTRevokeLogoutListener($refreshManager, $refreshExtractor);
-        $listener->onLogout($event);
-    });
-
-    it('does nothing when refresh token is missing', function () {
-        $request = makeRequest('POST', '/logout');
-        $event = new LogoutEvent(makeTokenMock(), $request);
-
-        $refreshExtractor = Mockery::mock(AccessTokenExtractorInterface::class);
-        $refreshExtractor->shouldReceive('extract')->once()->with($request)->andReturn(null);
-
-        $refreshManager = Mockery::mock(RefreshTokenManagerInterface::class);
-        $refreshManager->shouldReceive('revoke')->never();
-
-        $listener = new JWTRevokeLogoutListener($refreshManager, $refreshExtractor);
-        $listener->onLogout($event);
-    });
+    (new JWTRevokeLogoutListener($jwtManager))->onLogout($event);
 });

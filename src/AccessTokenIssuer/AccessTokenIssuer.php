@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace GaaraHyperf\JWT\AccessTokenIssuer;
 
+use DateInterval;
 use DateTimeImmutable;
 use GaaraHyperf\Exception\InvalidAccessTokenException;
 use GaaraHyperf\JWT\AccessToken;
@@ -115,7 +116,8 @@ class AccessTokenIssuer implements AccessTokenIssuerInterface
             throw new InvalidAccessTokenException('Invalid access token signature');
         }
 
-        if (! $validator->validate($token, new StrictValidAt(new FrozenClock(new DateTimeImmutable()), $this->leeway))) {
+        $leeway = $this->leeway === null ? null : new DateInterval(sprintf('PT%dS', $this->leeway));
+        if (! $validator->validate($token, new StrictValidAt(new FrozenClock(new DateTimeImmutable()), $leeway))) {
             throw new InvalidAccessTokenException('Access token is expired or not yet valid');
         }
 

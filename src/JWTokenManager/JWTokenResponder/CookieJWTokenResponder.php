@@ -26,6 +26,8 @@ class CookieJWTokenResponder implements JWTokenResponderInterface
 
     public function respond(AccessToken $accessToken, ?RefreshToken $refreshToken = null): ResponseInterface
     {
+        $response = $this->response;
+
         if ($refreshToken !== null) {
             $cookie = new Cookie(
                 name: $this->cookieName,

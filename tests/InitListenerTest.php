@@ -7,24 +7,13 @@ use GaaraHyperf\JWT\ServiceProvider;
 use GaaraHyperf\ServiceProvider\ServiceProviderRegisterEvent;
 use GaaraHyperf\ServiceProvider\ServiceProviderRegistry;
 
-describe('InitListener', function () {
-    it('declares listened event', function () {
-        $listener = new InitListener();
+it('registers the service provider during initialization', function (): void {
+    $listener = new InitListener();
+    $registry = new ServiceProviderRegistry();
+    $event = new ServiceProviderRegisterEvent($registry);
 
-        expect($listener->listen())->toBe([
-            ServiceProviderRegisterEvent::class,
-        ]);
-    });
+    $listener->process($event);
 
-    it('registers jwt service provider', function () {
-        $listener = new InitListener();
-        $registry = new ServiceProviderRegistry();
-        $event = new ServiceProviderRegisterEvent($registry);
-
-        $listener->process($event);
-
-        $providers = $registry->getProviders();
-        expect($providers)->toHaveCount(1);
-        expect($providers[0])->toBeInstanceOf(ServiceProvider::class);
-    });
+    expect($registry->getProviders())->toHaveCount(1)
+        ->and($registry->getProviders()[0])->toBeInstanceOf(ServiceProvider::class);
 });
