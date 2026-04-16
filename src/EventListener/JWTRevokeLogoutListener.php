@@ -4,9 +4,8 @@ declare(strict_types=1);
 
 namespace GaaraHyperf\JWT\EventListener;
 
-use GaaraHyperf\AccessTokenExtractor\AccessTokenExtractorInterface;
 use GaaraHyperf\Event\LogoutEvent;
-use GaaraHyperf\JWT\RefreshTokenManager\RefreshTokenManagerInterface;
+use GaaraHyperf\JWT\JWTokenManager\JWTokenManagerInterface;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 
 /**
@@ -15,8 +14,7 @@ use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 class JWTRevokeLogoutListener implements EventSubscriberInterface
 {
     public function __construct(
-        private RefreshTokenManagerInterface $refreshTokenManager,
-        private AccessTokenExtractorInterface $refreshTokenExtractor,
+        private JWTokenManagerInterface $jwTokenManager,
     ) {
     }
 
@@ -33,11 +31,6 @@ class JWTRevokeLogoutListener implements EventSubscriberInterface
             return;
         }
 
-        $refreshToken = $this->refreshTokenExtractor->extract($event->getRequest());
-        if (is_null($refreshToken)) {
-            return;
-        }
-
-        $this->refreshTokenManager->revoke($refreshToken);
+        $this->jwTokenManager->revokeRefreshToken($event->getRequest());
     }
 }

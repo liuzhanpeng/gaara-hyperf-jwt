@@ -2,8 +2,8 @@
 
 declare(strict_types=1);
 
+use GaaraHyperf\Exception\InvalidAccessTokenException;
 use GaaraHyperf\JWT\AccessTokenManager\AccessTokenManager;
-use GaaraHyperf\JWT\Exception\InvalidAccessTokenException;
 use GaaraHyperf\Token\TokenInterface;
 
 function generateEcKeyPair(): array

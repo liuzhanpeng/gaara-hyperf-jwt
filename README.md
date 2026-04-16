@@ -15,7 +15,7 @@ composer require lzpeng/gaara-hyperf-jwt
 ```php
 <?php
 
-use GaaraHyperf\JWT\JWTResponseHandler;
+use GaaraHyperf\JWT\JWTSuccessHandler;
 
 return [
     'guards' => [
@@ -30,32 +30,55 @@ return [
                 'json_login' => [
                     'check_path' => '/api/login',
                     'success_handler' => [
-                        'class' => JWTResponseHandler::class,
+                        'class' => JWTSuccessHandler::class,
                         'params' => [
-                            'access_token_manager' => 'default',
-                            'refresh_token_manager' => 'default',
-                            'refresh_token_enabled' => true,
+                            'jwt_manager' => 'default', // 关联 services.jwt_managers 下的配置; 需跟jwt 认证器使用同一个 JWT Manager
                         ],
                     ],
                 ],
                 'jwt' => [
-                    'access_token_manager' => 'default',
-                    'refresh_token_enabled' => true,
-                    'refresh_path' => '/api/refresh-token',
-                    'refresh_token_manager' => 'default',
+                    'jwt_manager' => 'default',
                 ],
             ],
         ],
     ],
     'services' => [
-        'jwt_access_token_managers' => [
+        'jwt_managers' => [
             'default' => [
-                'secret_key' => 'your-secret-key',
-            ],
-        ],
-        'jwt_refresh_token_managers' => [
-            'default' => [
-                'prefix' => 'default',
+                // 'type' => 'default', // 可选，默认值: default; 目前仅支持 default 和 custom 两种类型
+                // 'algo' => 'HS512', // 可选；默认：HS512; 签名算法参考: https://lcobucci-jwt.readthedocs.io/en/latest/supported-algorithms/
+                'secret_key' => 'your-secret', // 必须; 对称算法密钥 或 非对称算法私钥
+                // 'public_key' => '', // algo为非对称算法时必须；非对称算法公钥
+                // 'passphrase' => '', // algo为非对称算法时可选; 私钥密码（如果有的话）
+                // 'leeway' => 5, // 可选; 允许的时间偏差，单位：秒; 默认: null
+                // 'iss' => 'xxx', // 可选；Issuer 声明
+                // 'aud' => 'xxx-app', // 可选；Audience 声明; 如果需要区分不同应用，可设置此值
+                // 'ttl' => 600, // 可选；Access Token 有效期，单位：秒； 默认：600秒（10分钟）; 建议设置为5-10分钟
+                // 'access_token_extractor' => [ // 可选，默认从 Authorization Header 中提取 Bearer Token
+                //     'type' => 'header',
+                //     'field' => 'Authorization',
+                //     'scheme' => 'Bearer',
+                // ],
+                // 'refresh_token_enabled' => true, // 可选；是否启用 Refresh Token 机制，默认：true
+                // 'refresh_token_path' => '/user/refresh-token', // refresh_token_enabled 为 true 时必须；刷新 Token 的请求路径
+                // 'refresh_token_prefix' => 'default', // 可选; refresh token缓存前缀，默认：default； 如果存在多个管理器，需设置不同的前缀以区分
+                // 'refresh_token_ttl' => 60 * 60 * 24 * 14, // 可选；Refresh Token 有效期，单位：秒；默认：60 * 60 * 24 * 14
+                // 'refresh_token_single_session' => false, // 可选；是否启用单会话模式；默认：false；启用后，同一用户只能存在一个有效的 Refresh Token，登录会使之前的 Refresh Token 失效
+                // 'refresh_token_length' => 64, // 可选；Refresh Token 字符串长度；默认：64
+                // 'refresh_token_extractor' => [ // 可选，默认从请求体中提取 refresh_token
+                //     'type' => 'body', // 可选值：body|cookie
+                //     'field' => 'refresh_token', // refresh_token 参数名
+                // ],
+                // 'token_responder' => [
+                //     'type' => 'body', // 支持 body（以json响应体返回）, cookie(access_token信息还是以json响应体返回, refresh_token以cookie响应), custom; 默认body
+                //     'template' => '{"code": 0, "message": "success", "data": {"access_token": "#ACCESS_TOKEN#", "expires_in": #EXPIRES_IN#, "refresh_token": "#REFRESH_TOKEN#", "refresh_expires_in": #REFRESH_EXPIRES_IN"}}',
+                //     'refresh_token_cookie_name' => 'refresh_token', // 可选; refresh_token 参数名，默认：refresh_token
+                //     'refresh_token_cookie_path' => '/', // refresh_token_response_type=='cookie' 时生效，Cookie 路径，默认：/
+                //     'refresh_token_cookie_domain' => null, // refresh_token_response_type=='cookie' 时生效，Cookie 域名，默认：null
+                //     'refresh_token_cookie_secure' => true, // refresh_token_response_type=='cookie' 时生效，Cookie 是否仅通过 HTTPS 传输，默认：true
+                //     'refresh_token_cookie_http_only' => true, // refresh_token_response_type=='cookie' 时生效，Cookie 是否为 HttpOnly，默认：true
+                //     'refresh_token_cookie_samesite' => 'lax', // refresh_token_response_type=='cookie' 时生效，Cookie SameSite 属性，默认：lax, 可选值：lax|strict
+                // ]
             ],
         ],
     ],

@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace GaaraHyperf\JWT\AccessTokenIssuer;
 
 use DateTimeImmutable;
+use GaaraHyperf\Exception\InvalidAccessTokenException;
 use GaaraHyperf\JWT\AccessToken;
-use GaaraHyperf\JWT\Exception\InvalidAccessTokenException;
 use GaaraHyperf\JWT\JWTUser;
 use GaaraHyperf\Token\TokenInterface;
 use InvalidArgumentException;
@@ -87,12 +87,13 @@ class AccessTokenIssuer implements AccessTokenIssuerInterface
             $builder = $builder->withClaim($name, $value);
         }
 
-        $token = $builder->getToken($signer, $key);
-
-        return new AccessToken($token->toString(), $this->ttl);
+        return new AccessToken(
+            $builder->getToken($signer, $key)->toString(),
+            $this->ttl
+        );
     }
 
-    public function parse(string $accessToken): JWTUser
+    public function resolve(string $accessToken): JWTUser
     {
         try {
             $signer = $this->getSigner();
@@ -136,6 +137,9 @@ class AccessTokenIssuer implements AccessTokenIssuerInterface
         return new JWTUser($userIdentifier, $attributes);
     }
 
+    /**
+     * 返回签名器.
+     */
     private function getSigner(): Signer
     {
         return match ($this->algo) {
@@ -154,6 +158,9 @@ class AccessTokenIssuer implements AccessTokenIssuerInterface
         };
     }
 
+    /**
+     * 返回签名key.
+     */
     private function getSigningKey(): Key
     {
         if ($this->isAsymmetric($this->algo)) {
@@ -163,6 +170,9 @@ class AccessTokenIssuer implements AccessTokenIssuerInterface
         return InMemory::plainText($this->secretKey);
     }
 
+    /**
+     * 返回验签key.
+     */
     private function getVerificationKey(): Key
     {
         if ($this->isAsymmetric($this->algo)) {

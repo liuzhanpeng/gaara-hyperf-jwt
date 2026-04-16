@@ -4,14 +4,19 @@ declare(strict_types=1);
 
 namespace GaaraHyperf\JWT;
 
+use GaaraHyperf\AccessTokenExtractor\AccessTokenExtractorFactory;
 use GaaraHyperf\Authenticator\AuthenticatorFactory;
 use GaaraHyperf\Config\ConfigLoaderInterface;
-use GaaraHyperf\JWT\AccessTokenManager\AccessTokenManagerFactory;
-use GaaraHyperf\JWT\AccessTokenManager\AccessTokenManagerResolver;
-use GaaraHyperf\JWT\AccessTokenManager\AccessTokenManagerResolverInterface;
-use GaaraHyperf\JWT\RefreshTokenManager\RefreshTokenManagerFactory;
-use GaaraHyperf\JWT\RefreshTokenManager\RefreshTokenManagerResolver;
-use GaaraHyperf\JWT\RefreshTokenManager\RefreshTokenManagerResolverInterface;
+use GaaraHyperf\JWT\AccessTokenIssuer\AccessTokenIssuerFactory;
+use GaaraHyperf\JWT\AccessTokenIssuer\AccessTokenIssuerResolver;
+use GaaraHyperf\JWT\AccessTokenIssuer\AccessTokenIssuerResolverInterface;
+use GaaraHyperf\JWT\JWTokenManager\JWTokenManager;
+use GaaraHyperf\JWT\JWTokenManager\JWTokenManagerResolver;
+use GaaraHyperf\JWT\JWTokenManager\JWTokenManagerResolverInterface;
+use GaaraHyperf\JWT\JWTokenManager\JWTokenResponder\JWTokenResponderFactory;
+use GaaraHyperf\JWT\RefreshTokenIssuer\RefreshTokenIssuerFactory;
+use GaaraHyperf\JWT\RefreshTokenIssuer\RefreshTokenIssuerResolver;
+use GaaraHyperf\JWT\RefreshTokenIssuer\RefreshTokenIssuerResolverInterface;
 use GaaraHyperf\ServiceProvider\ServiceProviderInterface;
 use Hyperf\Contract\ContainerInterface;
 
@@ -27,36 +32,62 @@ class ServiceProvider implements ServiceProviderInterface
     {
         $gaaraConfig = $container->get(ConfigLoaderInterface::class)->load();
 
-        $accessTokenManagerConfig = $gaaraConfig->serviceConfig('jwt_access_token_managers') + [
+        $configGroup = $gaaraConfig->serviceConfig('jwt_managers') + [
             'default' => [
                 'type' => 'default',
                 'algo' => 'HS512',
                 'ttl' => 600,
                 'iss' => 'gaara-hyperf-jwt',
                 'aud' => '',
-            ],
-        ];
 
-        $accessTokenManagerfactories = [];
-        foreach ($accessTokenManagerConfig as $name => $config) {
-            $accessTokenManagerfactories[$name] = fn () => fn () => $container->get(AccessTokenManagerFactory::class)->create($config);
-        }
-        $container->define(AccessTokenManagerResolverInterface::class, fn () => new AccessTokenManagerResolver($accessTokenManagerfactories));
-
-        $refreshTokenManagerConfig = $gaaraConfig->serviceConfig('jwt_refresh_token_managers') + [
-            'default' => [
-                'type' => 'default',
                 'prefix' => 'default',
                 'ttl' => 60 * 60 * 24 * 14,
                 'single_session' => false,
                 'refresh_token_length' => 64,
             ],
         ];
-        $refreshTokenManagerFactories = [];
-        foreach ($refreshTokenManagerConfig as $name => $config) {
-            $refreshTokenManagerFactories[$name] = fn () => $container->get(RefreshTokenManagerFactory::class)->create($config);
+
+        $accessTokenIssuerFactories = [];
+        $refreshTokenIssuerFactories = [];
+        $jwtManagerFactories = [];
+        foreach ($configGroup as $name => $config) {
+            $accessTokenIssuerFactories[$name] = fn () => fn () => $container->get(AccessTokenIssuerFactory::class)->create($config);
+            $refreshTokenIssuerFactories[$name] = fn () => $container->get(RefreshTokenIssuerFactory::class)->create($config);
+
+            $accessTokenExtractor = $container->get(AccessTokenExtractorFactory::class)->create(
+                ($config['access_token_extractor'] ?? []) + [
+                    'type' => 'header',
+                    'field' => 'Authorization',
+                ]
+            );
+
+            $refreshTokenExtractor = $container->get(AccessTokenExtractorFactory::class)->create(
+                ($config['refresh_token_extractor'] ?? []) + [
+                    'type' => 'body',
+                    'field' => 'refresh_token',
+                ]
+            );
+
+            $responder = $container->get(JWTokenResponderFactory::class)->create(
+                ($config['token_responder'] ?? []) + [
+                    'type' => 'body',
+                    'template' => '{"code": 0, "message": "success", "data": {"access_token": "#ACCESS_TOKEN#", "expires_in": #EXPIRES_IN#, "refresh_token": "#REFRESH_TOKEN#", "refresh_token_expires_in": #REFRESH_TOKEN_EXPIRES_IN#}}',
+                ]
+            );
+
+            $jwtManagerFactories[$name] = fn () => new JWTokenManager(
+                accessTokenExtractor: $accessTokenExtractor,
+                accessTokenIssuer: $container->get(AccessTokenIssuerResolverInterface::class)->resolve($name),
+                responder: $responder,
+                isRefreshTokenEnabled: $config['refresh_token_enabled'] ?? true,
+                refreshTokenPath: $config['refresh_token_path'] ?? '',
+                refreshTokenExtractor: $refreshTokenExtractor,
+                refreshTokenIssuer: $container->get(RefreshTokenIssuerResolverInterface::class)->resolve($name),
+            );
         }
-        $container->define(RefreshTokenManagerResolverInterface::class, fn () => new RefreshTokenManagerResolver($refreshTokenManagerFactories));
+        $container->set(AccessTokenIssuerResolverInterface::class, fn () => new AccessTokenIssuerResolver($accessTokenIssuerFactories));
+        $container->set(RefreshTokenIssuerResolverInterface::class, fn () => new RefreshTokenIssuerResolver($refreshTokenIssuerFactories));
+        $container->set(JWTokenManagerResolverInterface::class, fn () => new JWTokenManagerResolver($jwtManagerFactories));
 
         $authenticatorFactory = $container->get(AuthenticatorFactory::class);
         $authenticatorFactory->registerBuilder('jwt', JWTAuthenticatorBuilder::class);

@@ -21,5 +21,5 @@ interface AccessTokenIssuerInterface
     /**
      * 解析, 失败时抛出异常.
      */
-    public function parse(string $accessToken): JWTUser;
+    public function resolve(string $accessToken): JWTUser;
 }
