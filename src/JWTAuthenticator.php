@@ -11,7 +11,9 @@ use GaaraHyperf\Exception\InvalidAccessTokenException;
 use GaaraHyperf\Exception\InvalidCredentialsException;
 use GaaraHyperf\JWT\JWTokenManager\JWTokenManagerInterface;
 use GaaraHyperf\Passport\Passport;
+use GaaraHyperf\Token\TokenInterface;
 use GaaraHyperf\UserProvider\UserProviderInterface;
+use Psr\Http\Message\ResponseInterface as MessageResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 
 /**
@@ -30,12 +32,15 @@ class JWTAuthenticator extends AbstractAuthenticator
 
     public function supports(ServerRequestInterface $request): bool
     {
-        return $this->jwTokenManager->resolveAccessToken($request) !== null
-            || (
-                $this->jwTokenManager->isRefreshTokenEnabled()
-                && $request->getMethod() === 'POST'
-                && $request->getUri()->getPath() === $this->jwTokenManager->refreshTokenPath()
-            );
+        if ($this->jwTokenManager->isRefreshTokenEnabled() && $request->getMethod() === 'POST' && $request->getUri()->getPath() === $this->jwTokenManager->refreshTokenPath()) {
+            return true;
+        }
+
+        try {
+            return $this->jwTokenManager->resolveAccessToken($request) !== null;
+        } catch (InvalidAccessTokenException) {
+            return false;
+        }
     }
 
     public function authenticate(ServerRequestInterface $request): Passport
@@ -61,6 +66,28 @@ class JWTAuthenticator extends AbstractAuthenticator
             $jwtUser->getIdentifier(),
             fn () => $jwtUser
         );
+    }
+
+    /**
+     * @override
+     */
+    public function onAuthenticationSuccess(string $guardName, ServerRequestInterface $request, TokenInterface $token, Passport $passport): ?MessageResponseInterface
+    {
+        if (! is_null($this->successHandler)) {
+            return $this->successHandler->handle($guardName, $request, $token, $passport);
+        }
+
+        if ($this->jwTokenManager->isRefreshTokenEnabled() && $request->getMethod() === 'POST' && $request->getUri()->getPath() === $this->jwTokenManager->refreshTokenPath()) { // 简化处理，不定义专门的RefreshToken认证器，
+            // 撤消旧的刷新令牌
+            $this->jwTokenManager->revokeRefreshToken($request);
+
+            $user = $passport->getUser();
+            $customClaims = $user instanceof JWTCustomClaimAwareUserInterface ? $user->getJWTCustomClaims() : [];
+
+            return $this->jwTokenManager->issue($token, $customClaims);
+        }
+
+        return null;
     }
 
     public function isInteractive(): bool

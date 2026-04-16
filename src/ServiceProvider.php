@@ -34,16 +34,6 @@ class ServiceProvider implements ServiceProviderInterface
 
         $configGroup = $gaaraConfig->serviceConfig('jwt_managers') + [
             'default' => [
-                'type' => 'default',
-                'algo' => 'HS512',
-                'ttl' => 600,
-                'iss' => 'gaara-hyperf-jwt',
-                'aud' => '',
-
-                'prefix' => 'default',
-                'ttl' => 60 * 60 * 24 * 14,
-                'single_session' => false,
-                'refresh_token_length' => 64,
             ],
         ];
 
@@ -71,7 +61,7 @@ class ServiceProvider implements ServiceProviderInterface
             $responder = $container->get(JWTokenResponderFactory::class)->create(
                 ($config['token_responder'] ?? []) + [
                     'type' => 'body',
-                    'template' => '{"code": 0, "message": "success", "data": {"access_token": "#ACCESS_TOKEN#", "expires_in": #EXPIRES_IN#, "refresh_token": "#REFRESH_TOKEN#", "refresh_token_expires_in": #REFRESH_TOKEN_EXPIRES_IN#}}',
+                    'template' => '{"code": 0, "message": "success", "data": {"access_token": "#ACCESS_TOKEN#", "expires_in": #EXPIRES_IN#, "refresh_token": "#REFRESH_TOKEN#", "refresh_token_expires_in": #REFRESH_EXPIRES_IN#}}',
                 ]
             );
 
@@ -85,9 +75,9 @@ class ServiceProvider implements ServiceProviderInterface
                 refreshTokenIssuer: $container->get(RefreshTokenIssuerResolverInterface::class)->resolve($name),
             );
         }
-        $container->set(AccessTokenIssuerResolverInterface::class, fn () => new AccessTokenIssuerResolver($accessTokenIssuerFactories));
-        $container->set(RefreshTokenIssuerResolverInterface::class, fn () => new RefreshTokenIssuerResolver($refreshTokenIssuerFactories));
-        $container->set(JWTokenManagerResolverInterface::class, fn () => new JWTokenManagerResolver($jwtManagerFactories));
+        $container->set(AccessTokenIssuerResolverInterface::class, new AccessTokenIssuerResolver($accessTokenIssuerFactories));
+        $container->set(RefreshTokenIssuerResolverInterface::class, new RefreshTokenIssuerResolver($refreshTokenIssuerFactories));
+        $container->set(JWTokenManagerResolverInterface::class, new JWTokenManagerResolver($jwtManagerFactories));
 
         $authenticatorFactory = $container->get(AuthenticatorFactory::class);
         $authenticatorFactory->registerBuilder('jwt', JWTAuthenticatorBuilder::class);

@@ -15,6 +15,7 @@ it('supports requests that already contain an access token', function (): void {
     $userProvider = Mockery::mock(UserProviderInterface::class);
     $jwtManager = Mockery::mock(JWTokenManagerInterface::class);
 
+    $jwtManager->shouldReceive('isRefreshTokenEnabled')->once()->andReturn(false);
     $jwtManager->shouldReceive('resolveAccessToken')->once()->with($request)->andReturn(new JWTUser('user-1', []));
 
     $authenticator = new JWTAuthenticator($jwtManager, $userProvider);
@@ -28,7 +29,6 @@ it('supports refresh-token requests on the configured path', function (): void {
     $userProvider = Mockery::mock(UserProviderInterface::class);
     $jwtManager = Mockery::mock(JWTokenManagerInterface::class);
 
-    $jwtManager->shouldReceive('resolveAccessToken')->once()->with($request)->andReturn(null);
     $jwtManager->shouldReceive('isRefreshTokenEnabled')->once()->andReturn(true);
     $jwtManager->shouldReceive('refreshTokenPath')->once()->andReturn('/refresh');
 

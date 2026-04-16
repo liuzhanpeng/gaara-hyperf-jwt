@@ -47,6 +47,8 @@ return [
         'jwt_managers' => [
             'default' => [
                 'secret_key' => 'your-secret', // 必须; 对称算法密钥 或 非对称算法私钥
+                'refresh_token_enabled' => true, // 可选；是否启用刷新令牌功能，默认true
+                'refresh_token_path' => '/jwt/refresh-token', // refresh_token_enabled==true时必需；刷新令牌请求路径，默认/jwt/refresh-token
                 // 'prefix' => 'default', // 可选；Refresh Token 缓存前缀，默认：default
                 // 详细参数配置参考下文核心配置章节
             ],
@@ -127,7 +129,7 @@ return [
         // 'refresh_token_path' => '/user/refresh-token', // refresh_token_enabled 为 true 时必须；刷新 Token 的请求路径
         // 'refresh_token_prefix' => 'default', // 可选; refresh token缓存前缀，默认：default； 如果存在多个管理器，需设置不同的前缀以区分
         // 'refresh_token_ttl' => 60 * 60 * 24 * 14, // 可选；Refresh Token 有效期，单位：秒；默认：60 * 60 * 24 * 14
-        // 'refresh_token_single_session' => false, // 可选；是否启用单会话模式；默认：false；启用后，同一用户只能存在一个有效的 Refresh Token，登录会使之前的 Refresh Token 失效
+        // 'refresh_token_single_session' => true, // 可选；是否启用单会话模式；默认：true；启用后，同一用户只能存在一个有效的 Refresh Token，登录会使之前的 Refresh Token 失效
         // 'refresh_token_length' => 64, // 可选；Refresh Token 字符串长度；默认：64
         // 'refresh_token_extractor' => [ // 可选，默认从请求体中提取 refresh_token
         //     'type' => 'body', // 可选值：body|cookie

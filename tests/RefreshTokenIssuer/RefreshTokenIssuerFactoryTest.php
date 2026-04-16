@@ -33,7 +33,7 @@ it('creates the default refresh token issuer from config', function (): void {
 
     $container->shouldReceive('make')->once()->with(RefreshTokenIssuer::class, [
         'prefix' => Constants::__PREFIX . ':jwt_refresh_token:guard1',
-        'ttl' => 3600,
+        'ttl' => 1209600,
         'singleSession' => true,
         'refreshTokenLength' => 64,
     ])->andReturn($expected);
@@ -43,7 +43,7 @@ it('creates the default refresh token issuer from config', function (): void {
     expect($factory->create([
         'type' => 'default',
         'prefix' => 'guard1',
-        'ttl' => 3600,
+        'ttl' => 1209600,
         'single_session' => true,
         'refresh_token_length' => 64,
     ]))->toBe($expected);
