@@ -20,7 +20,7 @@ it('requires refresh token configuration when the feature is enabled', function 
     expect(fn () => new JWTokenManager($accessExtractor, $accessIssuer, $responder, true, ''))
         ->toThrow(InvalidArgumentException::class, 'Refresh path must be provided');
 
-    expect(fn () => new JWTokenManager($accessExtractor, $accessIssuer, $responder, true, '/refresh'))
+    expect(fn () => new JWTokenManager($accessExtractor, $accessIssuer, $responder, true, '/refresh', '/logout'))
         ->toThrow(InvalidArgumentException::class, 'Refresh token extractor must be provided');
 });
 
@@ -46,6 +46,7 @@ it('issues access and refresh tokens through the configured collaborators', func
         responder: $responder,
         isRefreshTokenEnabled: true,
         refreshTokenPath: '/refresh',
+        logoutPath: '/logout',
         refreshTokenExtractor: $refreshExtractor,
         refreshTokenIssuer: $refreshIssuer,
     );
@@ -90,6 +91,7 @@ it('resolves and revokes refresh tokens when enabled', function (): void {
         responder: $responder,
         isRefreshTokenEnabled: true,
         refreshTokenPath: '/refresh',
+        logoutPath: '/logout',
         refreshTokenExtractor: $refreshExtractor,
         refreshTokenIssuer: $refreshIssuer,
     );
