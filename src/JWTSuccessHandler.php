@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace GaaraHyperf\JWT;
 
 use GaaraHyperf\Authenticator\AuthenticationSuccessHandlerInterface;
-use GaaraHyperf\JWT\JWTokenManager\JWTokenManagerInterface;
+use GaaraHyperf\JWT\JWTokenManager\JWTokenManagerResolverInterface;
 use GaaraHyperf\Passport\Passport;
 use GaaraHyperf\Token\TokenInterface;
 use Psr\Http\Message\ResponseInterface;
@@ -17,7 +17,8 @@ use Psr\Http\Message\ServerRequestInterface;
 class JWTSuccessHandler implements AuthenticationSuccessHandlerInterface
 {
     public function __construct(
-        private JWTokenManagerInterface $jwTokenManager,
+        private JWTokenManagerResolverInterface $jwTokenManagerResolver,
+        private string $jwtManager = 'default',
     ) {
     }
 
@@ -26,6 +27,8 @@ class JWTSuccessHandler implements AuthenticationSuccessHandlerInterface
         $user = $passport->getUser();
         $customClaims = $user instanceof JWTCustomClaimAwareUserInterface ? $user->getJWTCustomClaims() : [];
 
-        return $this->jwTokenManager->issue($token, $customClaims);
+        $jwTokenManager = $this->jwTokenManagerResolver->resolve($this->jwtManager);
+
+        return $jwTokenManager->issue($token, $customClaims);
     }
 }

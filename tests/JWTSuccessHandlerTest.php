@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 use GaaraHyperf\JWT\JWTCustomClaimAwareUserInterface;
 use GaaraHyperf\JWT\JWTokenManager\JWTokenManagerInterface;
+use GaaraHyperf\JWT\JWTokenManager\JWTokenManagerResolverInterface;
 use GaaraHyperf\JWT\JWTSuccessHandler;
 use GaaraHyperf\Passport\Passport;
 use GaaraHyperf\User\UserInterface;
@@ -13,6 +14,7 @@ it('passes custom jwt claims from the authenticated user to the success handler'
     $request = makeRequest('POST', '/login');
     $requestToken = makeTokenMock('user-1');
     $response = Mockery::mock(PsrResponseInterface::class);
+    $jwtManagerResolver = Mockery::mock(JWTokenManagerResolverInterface::class);
     $jwtManager = Mockery::mock(JWTokenManagerInterface::class);
 
     $user = new class implements UserInterface, JWTCustomClaimAwareUserInterface {
@@ -28,10 +30,10 @@ it('passes custom jwt claims from the authenticated user to the success handler'
     };
 
     $passport = new Passport('user-1', fn (): UserInterface => $user);
-
+    $jwtManagerResolver->shouldReceive('resolve')->once()->with('default')->andReturn($jwtManager);
     $jwtManager->shouldReceive('issue')->once()->with($requestToken, ['role' => 'admin'])->andReturn($response);
 
-    $handler = new JWTSuccessHandler($jwtManager);
+    $handler = new JWTSuccessHandler($jwtManagerResolver);
 
     expect($handler->handle('api', $request, $requestToken, $passport))->toBe($response);
 });
@@ -41,7 +43,8 @@ it('issues tokens without custom claims for ordinary users', function (): void {
     $requestToken = makeTokenMock('user-1');
     $response = Mockery::mock(PsrResponseInterface::class);
     $jwtManager = Mockery::mock(JWTokenManagerInterface::class);
-
+    $jwtManagerResolver = Mockery::mock(JWTokenManagerResolverInterface::class);
+    $jwtManagerResolver->shouldReceive('resolve')->once()->with('default')->andReturn($jwtManager);
     $user = new class implements UserInterface {
         public function getIdentifier(): string
         {
@@ -53,7 +56,7 @@ it('issues tokens without custom claims for ordinary users', function (): void {
 
     $jwtManager->shouldReceive('issue')->once()->with($requestToken, [])->andReturn($response);
 
-    $handler = new JWTSuccessHandler($jwtManager);
+    $handler = new JWTSuccessHandler($jwtManagerResolver);
 
     expect($handler->handle('api', $request, $requestToken, $passport))->toBe($response);
 });
