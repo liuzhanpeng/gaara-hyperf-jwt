@@ -29,6 +29,7 @@ class JWTAuthenticatorBuilder extends AbstractAuthenticatorBuilder
         return new JWTAuthenticator(
             jwTokenManager: $jwtManager,
             userProvider: $userProvider,
+            eventDispatcher: $eventDispatcher,
             successHandler: $this->createSuccessHandler($options),
             failureHandler: $this->createFailureHandler($options),
         );

@@ -22,12 +22,16 @@ class JWTokenManager implements JWTokenManagerInterface
         private JWTokenResponderInterface $responder,
         private bool $isRefreshTokenEnabled = true,
         private string $refreshTokenPath = '',
+        private string $logoutPath = '',
         private ?AccessTokenExtractorInterface $refreshTokenExtractor = null,
         private ?RefreshTokenIssuerInterface $refreshTokenIssuer = null,
     ) {
         if ($this->isRefreshTokenEnabled) {
             if ($this->refreshTokenPath === '') {
                 throw new InvalidArgumentException('Refresh path must be provided when refresh token is enabled.');
+            }
+            if ($this->logoutPath === '') {
+                throw new InvalidArgumentException('Logout path must be provided when refresh token is enabled.');
             }
             if ($this->refreshTokenExtractor === null) {
                 throw new InvalidArgumentException('Refresh token extractor must be provided when refresh token is enabled.');
@@ -67,6 +71,11 @@ class JWTokenManager implements JWTokenManagerInterface
     public function refreshTokenPath(): string
     {
         return $this->refreshTokenPath;
+    }
+
+    public function logoutPath(): string
+    {
+        return $this->logoutPath;
     }
 
     public function resolveRefreshToken(ServerRequestInterface $request): ?TokenInterface

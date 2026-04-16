@@ -35,6 +35,11 @@ interface JWTokenManagerInterface
     public function refreshTokenPath(): string;
 
     /**
+     * 注销的请求路径.
+     */
+    public function logoutPath(): string;
+
+    /**
      * 解析刷新令牌, 失败时返回null.
      */
     public function resolveRefreshToken(ServerRequestInterface $request): ?TokenInterface;

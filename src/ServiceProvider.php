@@ -71,6 +71,7 @@ class ServiceProvider implements ServiceProviderInterface
                 responder: $responder,
                 isRefreshTokenEnabled: $config['refresh_token_enabled'] ?? true,
                 refreshTokenPath: $config['refresh_token_path'] ?? '',
+                logoutPath: $config['logout_path'] ?? '',
                 refreshTokenExtractor: $refreshTokenExtractor,
                 refreshTokenIssuer: $container->get(RefreshTokenIssuerResolverInterface::class)->resolve($name),
             );

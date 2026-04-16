@@ -22,7 +22,6 @@ return [
         'api' => [
             'matcher' => [
                 'pattern' => '^/api',
-                'logout_path' => '/api/logout', // 如需触发 LogoutEvent，需配置该路径
             ],
             'user_provider' => [
                 // 参考 gaara-hyperf 文档
@@ -49,7 +48,7 @@ return [
                 'secret_key' => 'your-secret', // 必须; 对称算法密钥 或 非对称算法私钥
                 'refresh_token_enabled' => true, // 可选；是否启用刷新令牌功能，默认true
                 'refresh_token_path' => '/jwt/refresh-token', // refresh_token_enabled==true时必需；刷新令牌请求路径，默认/jwt/refresh-token
-                // 'prefix' => 'default', // 可选；Refresh Token 缓存前缀，默认：default
+                'logout_path' => '/jwt/logout', // refresh_token_enabled == true时必需；
                 // 详细参数配置参考下文核心配置章节
             ],
         ],
@@ -203,12 +202,12 @@ class User implements UserInterface, JWTCustomClaimAwareUserInterface
 
 `JWTRevokeLogoutListener` 会在启用 JWT 认证器后自动注册，无需手动绑定。它会监听登出事件，并在满足条件时撤销当前请求携带的 Refresh Token。
 
-要触发 `LogoutEvent`，除了启用 JWT 认证外，还需要在 Guard 的 `matcher` 中配置 `logout_path`。只有当请求命中该路径时，Gaara Hyperf 才会将其识别为登出请求并派发登出事件。
+要触发 `LogoutEvent`，除了启用 JWT 认证外，还需要配置 `logout_path`。只有当请求命中该路径时，Gaara Hyperf 才会将其识别为登出请求并派发登出事件。
 
 生效条件如下：
 
 - 已启用 Refresh Token 机制；
-- Guard 的 `matcher` 已配置 `logout_path`；
+- 已配置 `logout_path`；
 - 当前请求路径命中 `logout_path`；
 - 请求方法为 `POST`；
 - 请求中能够被 `refresh_token_extractor` 正常提取到 Refresh Token。
