@@ -1,5 +1,7 @@
 # Gaara Hyperf JWT
 
+[English](README.en.md)
+
 Gaara Hyperf JWT 是一个面向 API 场景的 JWT 认证扩展，用于在 Gaara Hyperf 中快速接入 Access Token 与 Refresh Token 机制。它内置 JWT 认证器、登录成功处理器、刷新令牌管理与可自定义响应能力，适合需要无状态认证、短期访问令牌和安全刷新流程的项目使用。
 
 ## 安装
